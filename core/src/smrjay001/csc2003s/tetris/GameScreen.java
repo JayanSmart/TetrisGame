@@ -64,9 +64,18 @@ public class GameScreen extends ApplicationAdapter {
 	}
 
 	@Override
+	/**
+	 * This is the main render function for the game logic
+	 */
 	public void render() {
 		int count = 0;
-		while (count < 25) {
+		Boolean gameOver = false;
+		while (gameOver == false) {
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e){
+				continue;
+			}
 			if (active == null) {
 				System.out.println(shapes.length);
 				active = new Shape(shapes[random.nextInt(shapes.length - 1)].getShape(), 0, 0);
@@ -75,6 +84,9 @@ public class GameScreen extends ApplicationAdapter {
 			}
 
 			if (checkCollision()) {
+				if (active.y < 3) {
+					gameOver = true;
+				}
 				map.printShape(active);
 				active = new Shape(shapes[random.nextInt(shapes.length)].getShape());
 				active.x = 0;
@@ -82,12 +94,15 @@ public class GameScreen extends ApplicationAdapter {
 			} else {
 				active.down();
 				System.out.println(map.toString(active));
-				System.out.println("active shape is at: ("+active.x+","+active.y+")");
 			}
 		count++;
 		}
 	}
 
+	/**
+	 * Check if the next game state will have a collision.
+	 * @return True if collision occurs in next game state, else False.
+	 */
 	private boolean checkCollision() {
 		System.out.println("Check collision");
 		Shape checker = new Shape(active.getShape(), active.x, active.y);
@@ -97,7 +112,7 @@ public class GameScreen extends ApplicationAdapter {
 		for (int i = checker.y; i < checker.y + shape.length; i++) {
 			for (int j = checker.x; j < checker.x + shape.length; j++) {
 				try {
-					if (field[i][j] == 1 && checker.getShape()[i][j] == 1) {
+					if (field[i][j] == 1 && shape[i-checker.y][j-checker.x] == 1) {
 						return true;
 					}
 				} catch (ArrayIndexOutOfBoundsException e) {

@@ -16,13 +16,19 @@ public class Map {
 		return map;
 	}
 
+
+	/**
+	 * This functions prints a "Still" shape to the map background.
+	 * @param active The active shape that will be "printed" to the background.
+	 */
 	void printShape(Shape active){
 		System.out.println("PrintShape");
 		int[][] shape = active.getShape().clone();
-		for (int i = active.y; i < shape.length; i++) {
-			for (int j = active.x; j < shape.length; j++) {
-				System.out.println("Shape here: "+shape[i-active.y][j-active.x]);
-				map[i][j] = shape[i- active.y][j- active.x];
+		for (int i = active.y; i < shape.length + active.y; i++) {
+			for (int j = active.x; j < shape.length + active.x; j++) {
+				if (map[i][j] == 0) {
+					this.map[i][j] = shape[i - active.y][j - active.x];
+				}
 			}
 		}
 	}
