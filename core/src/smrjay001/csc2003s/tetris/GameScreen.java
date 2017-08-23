@@ -1,6 +1,7 @@
 package smrjay001.csc2003s.tetris;
 
 import com.badlogic.gdx.ApplicationAdapter;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 import java.util.Random;
 
@@ -65,8 +66,8 @@ public class GameScreen extends ApplicationAdapter {
 
 	@Override
 	public void render() {
-		int count = 0;
-		while (count < 25) {
+		boolean game_over = false;
+		while (!game_over) {
 			if (active == null) {
 				System.out.println(shapes.length);
 				active = new Shape(shapes[random.nextInt(shapes.length - 1)].getShape(), 0, 0);
@@ -75,19 +76,29 @@ public class GameScreen extends ApplicationAdapter {
 			}
 
 			if (checkCollision()) {
+				if (checkRow(3, 1)) {
+					System.out.println("GAME OVER");
+					game_over = true;
+				}
 				map.printShape(active);
 				active = new Shape(shapes[random.nextInt(shapes.length)].getShape());
-				active.x = 0;
+				active.x = random.nextInt(8 - active.shape.length);
 				active.y = 0;
+				for (int i = 0; i < random.nextInt(3); i++) {
+					active.rotate();
+				}
 			} else {
 				active.down();
 				System.out.println(map.toString(active));
-				System.out.println("active shape is at: ("+active.x+","+active.y+")");
 			}
-		count++;
+
 		}
 	}
 
+	/**
+	 * This will check for any collisions in the next game state.
+	 * @return true if collision will occur, else false.
+	 */
 	private boolean checkCollision() {
 		System.out.println("Check collision");
 		Shape checker = new Shape(active.getShape(), active.x, active.y);
@@ -97,7 +108,7 @@ public class GameScreen extends ApplicationAdapter {
 		for (int i = checker.y; i < checker.y + shape.length; i++) {
 			for (int j = checker.x; j < checker.x + shape.length; j++) {
 				try {
-					if (field[i][j] == 1 && checker.getShape()[i][j] == 1) {
+					if (field[i][j] == 1 && checker.getShape()[i-checker.y][j-checker.x] == 1) {
 						return true;
 					}
 				} catch (ArrayIndexOutOfBoundsException e) {
@@ -106,6 +117,27 @@ public class GameScreen extends ApplicationAdapter {
 					}
 				}
 			}
+		}
+		return false;
+	}
+
+	/**
+	 * This will check if specific row of the map contains a specified value
+	 * @param r The map row to check.
+	 * @param val The value you are looking for
+	 * @return true if the value is contained in the row, else false.
+	 */
+	private boolean checkRow(int r, int val) {
+		try {
+			int[] row = map.getMap()[r];
+			for (int id :
+					row) {
+				if (id == val) {
+					return true;
+				}
+			}
+		} catch (IndexOutOfBoundsException e) {
+			e.printStackTrace();
 		}
 		return false;
 	}

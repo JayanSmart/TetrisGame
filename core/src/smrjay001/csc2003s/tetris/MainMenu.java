@@ -44,7 +44,6 @@ public class MainMenu extends ApplicationAdapter{
 				screen = new GameScreen();
 				screen.create();
 				screen.render();
-				System.out.println("UP");
 			}
 
 			@Override
