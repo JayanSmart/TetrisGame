@@ -23,7 +23,7 @@ public class Shape {
 	}
 
 	void down() {
-		y += 1;
+		y -= 1;
 	}
 
 	void left() {

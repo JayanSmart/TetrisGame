@@ -6,10 +6,13 @@ package smrjay001.csc2003s.tetris;
  */
 public class Map {
 	private int[][] map;
+	private int length;
+	private int width;
 
-
-	Map(int[][] map) {
-		this.map = map;
+	Map(int length, int width) {
+		this.length = length;
+		this.width = width;
+		this.map = new int[length][width];
 	}
 
 	int[][] getMap() {
@@ -22,13 +25,37 @@ public class Map {
 	 */
 	void printShape(Shape active) {
 		int[][] shape = active.getShape().clone();
-		for (int i = active.y; i < active.y + shape.length; i++) {
-			for (int j = active.x; j < active.x + shape.length; j++) {
-				if (map[i][j] == 0) {
-					this.map[i][j] = shape[i- active.y][j- active.x];
+
+		for (int y = 0; y<shape.length; y++) {
+			for (int x = 0; x < shape.length; x++) {
+				if (map[active.y-y][active.x+x] == 0) {
+					map[active.y-y][active.x+x] = shape[y][x];
 				}
 			}
 		}
+	}
+
+	/**
+	 * This returns the active game shape as if it were printed on the board.
+	 * @param active the shape object currently under user control
+	 * @return int[][] of the game board with the active piece on the board.
+	 */
+	int[][] seeShape(Shape active) {
+		int[][] board = new int[length][width];
+		for (int i = 0; i < length; i++) {
+			for (int j = 0; j < width; j++) {
+				board[i][j] = map[i][j];
+			}
+		}
+
+		for (int y = 0; y<active.shape.length; y++) {
+			for (int x = 0; x < active.shape.length; x++) {
+				if (board[active.y-y][active.x+x] == 0) {
+					board[active.y-y][active.x+x] = active.shape[y][x];
+				}
+			}
+		}
+		return board;
 	}
 
 	@Override
@@ -51,22 +78,17 @@ public class Map {
 		for (int y = 0; y < map.length; y++) {
 			for (int x=0; x < map[y].length; x++) {
 				if (
-					(y >= shape.y) && (y <shape.y+shape.shape.length) &&
-					(x >= shape.x) && (x < shape.x+shape.shape.length) &&
-					(shape.shape[y-shape.y][x-shape.x] == 1)
-					) {
-						output.append(shape.shape[y - shape.y][x - shape.x]).append(", ");
+						(y >= shape.y) && (y <shape.y+shape.shape.length) &&
+								(x >= shape.x) && (x < shape.x+shape.shape.length) &&
+								(shape.shape[y-shape.y][x-shape.x] == 1)
+						) {
+					output.append(shape.shape[y - shape.y][x - shape.x]).append(", ");
 				} else {
 					output.append(map[y][x]).append(", ");
 				}
 			}
 			output = new StringBuilder(output.substring(0, output.length() - 2));
 			output.append("\n");
-		}
-		try {
-			Thread.sleep(300);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
 		}
 		return output.toString().trim();
 	}
