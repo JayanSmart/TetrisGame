@@ -35,14 +35,14 @@ public class Shape {
 	}
 
 	void rotate() {
-		int[][] rotated = new int[shape.length][shape.length];   // Can do this as matrix is always square
+		int[][] rotated = new int[shape.length][shape.length];
 
 		for (int i = 0; i < shape.length; i++) {
 			for (int j = 0; j < shape.length; j++) {
 				rotated[i][j] = shape[shape.length - j - 1][i];
 			}
 		}
-		shape = rotated;
+		this.shape = rotated;
 	}
 
 	@Override
