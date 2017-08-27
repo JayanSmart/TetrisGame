@@ -28,8 +28,10 @@ public class Map {
 
 		for (int y = 0; y<shape.length; y++) {
 			for (int x = 0; x < shape.length; x++) {
-				if (map[active.y-y][active.x+x] == 0) {
-					map[active.y-y][active.x+x] = shape[y][x];
+				if (x + active.x < width && x + active.x >= 0 && (active.y-y>=0)) {
+					if (map[active.y - y][active.x + x] == 0) {
+						map[active.y - y][active.x + x] = shape[y][x];
+					}
 				}
 			}
 		}
@@ -50,8 +52,10 @@ public class Map {
 
 		for (int y = 0; y<active.shape.length; y++) {
 			for (int x = 0; x < active.shape.length; x++) {
-				if (board[active.y-y][active.x+x] == 0) {
-					board[active.y-y][active.x+x] = active.shape[y][x];
+				if (x + active.x < width && x + active.x >= 0 && (active.y-y>=0)) {
+					if (board[active.y - y][active.x + x] == 0) {
+						board[active.y - y][active.x + x] = active.shape[y][x];
+					}
 				}
 			}
 		}

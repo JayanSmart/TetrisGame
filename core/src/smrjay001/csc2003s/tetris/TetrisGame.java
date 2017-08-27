@@ -19,7 +19,6 @@ public class TetrisGame extends ApplicationAdapter {
 	private Random random;
 	private int game_width, game_length;
 	private boolean game_over;
-	private Timer timer;
 	private Map map;
 
 	@Override
@@ -28,7 +27,6 @@ public class TetrisGame extends ApplicationAdapter {
 		red_block = new Texture("red_block.png");
 		grey_block = new Texture("grey_block.png");
 		random = new Random();
-		timer = new Timer();
 
 		game_length = 24;
 		game_width = 10;
@@ -78,7 +76,7 @@ public class TetrisGame extends ApplicationAdapter {
 			@Override
 			public void run() {
 				if (checkCollision("down")) {
-					if (checkRow(game_length-4, 1)) {
+					if (checkRow(game_length-3, 1)) {
 						game_over = true;
 						System.out.println("GAME OVER!!");
 						Gdx.app.exit();
@@ -92,7 +90,6 @@ public class TetrisGame extends ApplicationAdapter {
 					}
 				} else {
 					active.down();
-					System.out.println(map.toString(active));
 				}
 			}
 		};
@@ -108,18 +105,23 @@ public class TetrisGame extends ApplicationAdapter {
 		Gdx.gl.glClearColor(1, 1, 1, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-		if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
-			if (checkCollision("left")) {
+		if (Gdx.input.isKeyJustPressed(Input.Keys.DOWN)) {
+			if (!checkCollision("down")) {
+				active.down();
+			}
+		}
+		if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT)) {
+			if (!checkCollision("left")) {
 				active.left();
 			}
 		}
-		if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
-			if (checkCollision("right")) {
+		if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT)) {
+			if (!checkCollision("right")) {
 				active.right();
 			}
 		}
-		if (Gdx.input.isKeyPressed(Input.Keys.UP)) {
-			if (checkCollision("rotate")) {
+		if (Gdx.input.isKeyJustPressed(Input.Keys.UP)) {
+			if (!checkCollision("rotate")) {
 				active.rotate();
 			}
 		}
@@ -152,11 +154,11 @@ public class TetrisGame extends ApplicationAdapter {
 	/**
 	 * This will check for any collisions in the next game state.
 	 * @return true if collision will occur, else false.
-	 * @param action
+	 * @param action The movement of the active block that collision will be tested against, either: 'rotate', 'down', 'left' or 'right'.
 	 */
 	private boolean checkCollision(String action) {
-		System.out.println("\nCHECK COLLISION\n");
 		Shape checker = new Shape(active.getShape(), active.x, active.y);
+
 		if (action.equals("down")) {
 			checker.down();
 
@@ -170,6 +172,7 @@ public class TetrisGame extends ApplicationAdapter {
 			checker.rotate();
 
 		}
+
 		int[][] field = map.getMap().clone();
 		int[][] shape = checker.getShape().clone();
 
@@ -177,11 +180,24 @@ public class TetrisGame extends ApplicationAdapter {
 		for (int y = checker.y; y > checker.y - shape.length; y--) {
 			for (int x = 0; x < shape.length; x++) {
 				if (y<0) {
-					if (shape[checker.y - y][x] == 1) {
-						System.out.println("COLLISION Type A!!!");
-						System.out.println("Active x: "+active.x+" y: "+active.y);
-						return true;
+					if (x + checker.x < game_width && x + checker.x >= 0) {
+						if (shape[checker.y - y][x] == 1) {
+							return true;
+						}
 					}
+				}
+			}
+		}
+
+		// Check if the block if off the left or right side of the screen
+		for (int[] row : shape) {
+			for (int x = 0; x < shape.length; x++) {
+				if (x + checker.x >= game_width && row[x] == 1) {
+					// The block would be off the right side of the game screen
+					return true;
+				} else if (checker.x + x < 0 && row[x] == 1) {
+					// The block would be off the left side of the game screen
+					return true;
 				}
 			}
 		}
@@ -189,10 +205,11 @@ public class TetrisGame extends ApplicationAdapter {
 		// Check if ths active shape collides with an in game shape
 		for (int y = 0; y < shape.length ; y++) {
 			for (int x = 0; x < shape.length; x++) {
-				if (field[checker.y-y][checker.x+x] == 1 && shape[y][x] == 1) {
-					System.out.println("COLLISION Type B!!!");
-					System.out.println("Active x: "+active.x+" y: "+active.y);
-					return true;
+				if ((x + checker.x < game_width) && (x + checker.x >= 0) && (checker.y-y>=0)) {
+					if (field[checker.y - y][checker.x + x] == 1 && shape[y][x] == 1) {
+						// The block collides with a fixed block
+						return true;
+					}
 				}
 			}
 		}
