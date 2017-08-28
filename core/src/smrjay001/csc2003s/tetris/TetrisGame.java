@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.Timer;
 
+import java.util.Arrays;
 import java.util.Random;
 
 public class TetrisGame extends ApplicationAdapter {
@@ -19,6 +20,7 @@ public class TetrisGame extends ApplicationAdapter {
 	private Random random;
 	private int game_width, game_length;
 	private boolean game_over;
+	private int score;
 	private Map map;
 
 	@Override
@@ -33,6 +35,7 @@ public class TetrisGame extends ApplicationAdapter {
 		map = new Map(game_length, game_width);
 
 		game_over = false;
+		score = 0;
 
 		this.shapes = new Shape[] {
 				new Shape(new int[][] {
@@ -76,12 +79,25 @@ public class TetrisGame extends ApplicationAdapter {
 			@Override
 			public void run() {
 				if (checkCollision("down")) {
-					if (checkRow(game_length-3, 1)) {
+					// Check Game Over
+					if (!checkRow(game_length-3, 1)) {
 						game_over = true;
 						System.out.println("GAME OVER!!");
 						Gdx.app.exit();
 					}
+
 					map.printShape(active);
+
+					// Check row completed
+					for (int row = 0; row < active.y; row++) {
+						System.out.println("Checking rows");
+						while (checkRow(row, 0)) {
+							System.out.println("removeRow: "+row);
+							map.removeRow(row);
+							score += 10;
+						}
+
+					}
 					active = new Shape(shapes[random.nextInt(shapes.length)].getShape());
 					active.x = random.nextInt(game_width - active.shape.length);
 					active.y = game_length-1;
@@ -220,21 +236,10 @@ public class TetrisGame extends ApplicationAdapter {
 	 * This will check if specific row of the map contains a specified value
 	 * @param row The map row to check.
 	 * @param val The value you are looking for
-	 * @return true if the value is contained in the row, else false.
+	 * @return true if the value is not contained in the row, false if it is.
 	 */
 	private boolean checkRow(int row, int val) {
-		try {
-			int[] toCheck = map.getMap()[row];
-			for (int id :
-					toCheck) {
-				if (id == val) {
-					return true;
-				}
-			}
-		} catch (IndexOutOfBoundsException e) {
-			e.printStackTrace();
-		}
-		return false;
+		return Arrays.stream(map.getMap()[row]).noneMatch(i -> i == val);
 	}
 
 }

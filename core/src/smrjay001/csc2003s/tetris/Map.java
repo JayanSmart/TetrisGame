@@ -62,6 +62,20 @@ public class Map {
 		return board;
 	}
 
+	/**
+	 * Remove one row from the game board and add a new empty one to the top of the board
+	 * @param row The index of the row to be removed
+	 */
+	public void removeRow(int row) {
+		if (row >= 0 && row < length) {
+			for (int i = row; i < length-1; i++) {
+				map[i] = map[i+1];
+			}
+		}
+		map[length-1] = new int[width];
+	}
+
+
 	@Override
 	public String toString() {
 		StringBuilder output = new StringBuilder();
