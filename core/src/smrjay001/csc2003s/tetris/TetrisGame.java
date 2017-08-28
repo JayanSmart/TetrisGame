@@ -3,12 +3,17 @@ package smrjay001.csc2003s.tetris;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.scenes.scene2d.ui.Button;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.utils.Timer;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 
 public class TetrisGame extends ApplicationAdapter {
@@ -21,7 +26,9 @@ public class TetrisGame extends ApplicationAdapter {
 	private int game_width, game_length;
 	private boolean game_over;
 	private int score;
+
 	private Map map;
+	BitmapFont font;
 
 	@Override
 	public void create () {
@@ -36,44 +43,47 @@ public class TetrisGame extends ApplicationAdapter {
 
 		game_over = false;
 		score = 0;
+		font = new BitmapFont();
 
 		this.shapes = new Shape[] {
-				new Shape(new int[][] {
-						{0,0,1,0},
-						{0,0,1,0},
-						{0,0,1,0},
-						{0,0,1,0},
-				}),
-				new Shape(new int[][] {
-						{1,1,0},
-						{0,1,0},
-						{0,1,0},
-				}),
-				new Shape(new int[][] {
-						{0,1,1},
-						{0,1,0},
-						{0,1,0},
-				}),
-				new Shape(new int[][] {
-						{0,1,0},
-						{0,1,1},
-						{0,1,0},
-				}),
-				new Shape(new int[][] {
-						{1,1},
-						{1,1}
-				}),
-				new Shape(new int[][] {
-						{1,1,0},
-						{0,1,1},
-						{0,0,0}
-				}),
-				new Shape(new int[][] {
-						{0,1,1},
-						{1,1,0},
-						{0,0,0}
-				}),
+			new Shape(new int[][] {
+					{0,0,1,0},
+					{0,0,1,0},
+					{0,0,1,0},
+					{0,0,1,0},
+			}),
+			new Shape(new int[][] {
+					{1,1,0},
+					{0,1,0},
+					{0,1,0},
+			}),
+			new Shape(new int[][] {
+					{0,1,1},
+					{0,1,0},
+					{0,1,0},
+			}),
+			new Shape(new int[][] {
+					{0,1,0},
+					{0,1,1},
+					{0,1,0},
+			}),
+			new Shape(new int[][] {
+					{1,1},
+					{1,1}
+			}),
+			new Shape(new int[][] {
+					{1,1,0},
+					{0,1,1},
+					{0,0,0}
+			}),
+			new Shape(new int[][] {
+					{0,1,1},
+					{1,1,0},
+					{0,0,0}
+			}),
 		};
+
+
 
 		final Timer.Task moveDownTask = new Timer.Task() {
 			@Override
@@ -144,6 +154,12 @@ public class TetrisGame extends ApplicationAdapter {
 
 
 		batch.begin();
+
+		font.setColor(Color.GOLD);
+		font.draw(batch, "Score: "+score, 20*(game_width+2), 20*(game_length-5));
+
+
+
 		if (active == null) {
 			active = new Shape(shapes[random.nextInt(shapes.length - 1)].getShape(), 0, 19);
 		}
@@ -165,6 +181,7 @@ public class TetrisGame extends ApplicationAdapter {
 	public void dispose () {
 		batch.dispose();
 		red_block.dispose();
+		font.dispose();
 	}
 
 	/**
