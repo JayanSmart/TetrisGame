@@ -4,10 +4,10 @@ package smrjay001.csc2003s.tetris;
  * This is the object that controls the game map on which the player plays
  * This will not store the active map, only the static one.
  */
-public class Map {
-	private int[][] map;
-	private int length;
-	private int width;
+class Map {
+	private final int[][] map;
+	private final int length;
+	private final int width;
 
 	Map(int length, int width) {
 		this.length = length;
@@ -45,9 +45,7 @@ public class Map {
 	int[][] seeShape(Shape active) {
 		int[][] board = new int[length][width];
 		for (int i = 0; i < length; i++) {
-			for (int j = 0; j < width; j++) {
-				board[i][j] = map[i][j];
-			}
+			System.arraycopy(map[i], 0, board[i], 0, width);
 		}
 
 		for (int y = 0; y<active.shape.length; y++) {

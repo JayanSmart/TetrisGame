@@ -3,7 +3,7 @@ package smrjay001.csc2003s.tetris;
 /**
  * This object manages a Shape with which the player plays.
  */
-public class Shape {
+class Shape {
 	int[][] shape;
 	int x = 0;
 	int y = 0;

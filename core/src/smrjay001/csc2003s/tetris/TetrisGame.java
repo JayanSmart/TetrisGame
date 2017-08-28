@@ -8,13 +8,14 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.scenes.scene2d.ui.Button;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.utils.Timer;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Random;
+import java.util.stream.Stream;
 
 public class TetrisGame extends ApplicationAdapter {
 	private SpriteBatch batch;
@@ -25,10 +26,10 @@ public class TetrisGame extends ApplicationAdapter {
 	private Random random;
 	private int game_width, game_length;
 	private boolean game_over;
-	private int score;
+	private int score, high_score;
 
 	private Map map;
-	BitmapFont font;
+	private BitmapFont font;
 
 	@Override
 	public void create () {
@@ -83,12 +84,16 @@ public class TetrisGame extends ApplicationAdapter {
 			}),
 		};
 
-
+		getConfig("HIGH_SCORE");
 
 		final Timer.Task moveDownTask = new Timer.Task() {
 			@Override
 			public void run() {
 				if (checkCollision("down")) {
+					int multiplier = 1;
+
+					map.printShape(active);
+
 					// Check Game Over
 					if (!checkRow(game_length-3, 1)) {
 						game_over = true;
@@ -96,7 +101,6 @@ public class TetrisGame extends ApplicationAdapter {
 						Gdx.app.exit();
 					}
 
-					map.printShape(active);
 
 					// Check row completed
 					for (int row = 0; row < active.y; row++) {
@@ -104,10 +108,14 @@ public class TetrisGame extends ApplicationAdapter {
 						while (checkRow(row, 0)) {
 							System.out.println("removeRow: "+row);
 							map.removeRow(row);
-							score += 10;
+							score+=10*multiplier;
+							multiplier += multiplier;
+							System.out.println("multiplier: "+multiplier);
+							System.out.println("score: "+score);
 						}
 
 					}
+
 					active = new Shape(shapes[random.nextInt(shapes.length)].getShape());
 					active.x = random.nextInt(game_width - active.shape.length);
 					active.y = game_length-1;
@@ -157,7 +165,7 @@ public class TetrisGame extends ApplicationAdapter {
 
 		font.setColor(Color.GOLD);
 		font.draw(batch, "Score: "+score, 20*(game_width+2), 20*(game_length-5));
-
+		font.draw(batch, "High Score: "+high_score, 20*(game_width+2), 20*(game_length-6));
 
 
 		if (active == null) {
@@ -259,4 +267,21 @@ public class TetrisGame extends ApplicationAdapter {
 		return Arrays.stream(map.getMap()[row]).noneMatch(i -> i == val);
 	}
 
+
+	/**
+	 * Fetch and set all the data that the system stores from the previous session.
+	 */
+	private void getConfig(String config) {
+		try {
+			Stream<String> settings = Files.lines(Paths.get(Gdx.files.internal("tetris.config").path()));
+			settings.forEach((String line) ->{
+					if (line.split("=")[0].equals(config)) {
+						high_score = Integer.parseInt(line.split("=")[1]);
+					}
+				});
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
 }
