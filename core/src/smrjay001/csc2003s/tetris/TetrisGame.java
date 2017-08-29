@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Random;
 import java.util.stream.Stream;
 
@@ -26,9 +27,10 @@ public class TetrisGame extends ApplicationAdapter {
 	private Random random;
 	private int game_width, game_length;
 	private boolean game_over;
-	private int score, high_score;
 
-	private Map map;
+	HashMap<String, String> game_properties;
+
+	private GameMap gameMap;
 	private BitmapFont font;
 
 	@Override
@@ -40,10 +42,14 @@ public class TetrisGame extends ApplicationAdapter {
 
 		game_length = 24;
 		game_width = 10;
-		map = new Map(game_length, game_width);
+		gameMap = new GameMap(game_length, game_width);
+
+		game_properties = new HashMap<>();
+
+		getConfig();
 
 		game_over = false;
-		score = 0;
+		game_properties.replace("SCORE", "0");
 		font = new BitmapFont();
 
 		this.shapes = new Shape[] {
@@ -84,34 +90,28 @@ public class TetrisGame extends ApplicationAdapter {
 			}),
 		};
 
-		getConfig("HIGH_SCORE");
-
 		final Timer.Task moveDownTask = new Timer.Task() {
 			@Override
 			public void run() {
 				if (checkCollision("down")) {
 					int multiplier = 1;
 
-					map.printShape(active);
+					gameMap.printShape(active);
 
 					// Check Game Over
 					if (!checkRow(game_length-3, 1)) {
 						game_over = true;
 						System.out.println("GAME OVER!!");
-						Gdx.app.exit();
+
 					}
 
 
 					// Check row completed
 					for (int row = 0; row < active.y; row++) {
-						System.out.println("Checking rows");
 						while (checkRow(row, 0)) {
-							System.out.println("removeRow: "+row);
-							map.removeRow(row);
-							score+=10*multiplier;
+							gameMap.removeRow(row);
+							game_properties.replace("SCORE", String.valueOf(Integer.parseInt(String.valueOf(game_properties.get("SCORE")))+10*multiplier));
 							multiplier += multiplier;
-							System.out.println("multiplier: "+multiplier);
-							System.out.println("score: "+score);
 						}
 
 					}
@@ -164,8 +164,8 @@ public class TetrisGame extends ApplicationAdapter {
 		batch.begin();
 
 		font.setColor(Color.GOLD);
-		font.draw(batch, "Score: "+score, 20*(game_width+2), 20*(game_length-5));
-		font.draw(batch, "High Score: "+high_score, 20*(game_width+2), 20*(game_length-6));
+		font.draw(batch, "Score: "+ game_properties.get("SCORE"), 20*(game_width+2), 20*(game_length-5));
+		font.draw(batch, "High Score: "+ game_properties.get("HIGH_SCORE"), 20*(game_width+2), 20*(game_length-6));
 
 
 		if (active == null) {
@@ -174,16 +174,22 @@ public class TetrisGame extends ApplicationAdapter {
 
 		for (int y = 1; y <= game_length - 4; y++) {
 			for (int x = 1; x <= game_width; x++) {
-				if (map.seeShape(active)[y-1][x-1] == 1) {
+				if (gameMap.seeShape(active)[y-1][x-1] == 1) {
 					batch.draw(red_block, 20 * x, 20 * y);
 				} else {
 					batch.draw(grey_block, 20 * x, 20 * y);
 				}
 			}
 		}
-
 		batch.end();
 	}
+
+	@Override
+	public void resize(int width, int height) {
+		super.resize(width, height);
+	}
+
+
 
 	@Override
 	public void dispose () {
@@ -214,7 +220,7 @@ public class TetrisGame extends ApplicationAdapter {
 
 		}
 
-		int[][] field = map.getMap().clone();
+		int[][] field = gameMap.getMap().clone();
 		int[][] shape = checker.getShape().clone();
 
 		// Check if the shape has hit the bottom of the floor
@@ -258,30 +264,32 @@ public class TetrisGame extends ApplicationAdapter {
 	}
 
 	/**
-	 * This will check if specific row of the map contains a specified value
-	 * @param row The map row to check.
+	 * This will check if specific row of the gameMap contains a specified value
+	 * @param row The gameMap row to check.
 	 * @param val The value you are looking for
 	 * @return true if the value is not contained in the row, false if it is.
 	 */
 	private boolean checkRow(int row, int val) {
-		return Arrays.stream(map.getMap()[row]).noneMatch(i -> i == val);
+		return Arrays.stream(gameMap.getMap()[row]).noneMatch(i -> i == val);
 	}
 
 
 	/**
-	 * Fetch and set all the data that the system stores from the previous session.
+	 * Fetch and set all the data that the system stores from the previous session into the game_properties map.
 	 */
-	private void getConfig(String config) {
-		try {
-			Stream<String> settings = Files.lines(Paths.get(Gdx.files.internal("tetris.config").path()));
-			settings.forEach((String line) ->{
-					if (line.split("=")[0].equals(config)) {
-						high_score = Integer.parseInt(line.split("=")[1]);
+	private void getConfig() {
+		if (game_properties != null) {
+			try {
+				Stream<String> settings = Files.lines(Paths.get(Gdx.files.internal("tetris.config").path()));
+				settings.forEach((String line) -> {
+					if (line.split("=").length == 2) {
+						System.out.println(line);
+						game_properties.putIfAbsent(line.split("=")[0], line.split("=")[1]);
 					}
 				});
-		} catch (IOException e) {
-			e.printStackTrace();
+			} catch(IOException e){
+				e.printStackTrace();
+			}
 		}
 	}
-	
 }

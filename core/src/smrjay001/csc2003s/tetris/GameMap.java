@@ -4,12 +4,12 @@ package smrjay001.csc2003s.tetris;
  * This is the object that controls the game map on which the player plays
  * This will not store the active map, only the static one.
  */
-class Map {
+class GameMap {
 	private final int[][] map;
 	private final int length;
 	private final int width;
 
-	Map(int length, int width) {
+	GameMap(int length, int width) {
 		this.length = length;
 		this.width = width;
 		this.map = new int[length][width];
