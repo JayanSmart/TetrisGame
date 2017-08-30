@@ -1,0 +1,24 @@
+Game Visible:
+High Score:
+
+Achievements Screen:
+	- First Game
+	- Score Based:
+		+100 points
+		+500 points
+		+1000 points
+		+5000 points
+	- Total Score
+		+100 points
+		+500 points
+		+1000 points
+		+5000 points
+	- Egoism [Clear one row]
+	- Duality [Clear two rows]
+	- The Holy Trinity [Clear three rows]
+	- Enlightenment [Clear four rows]
+
+Statistics Screen:
+	- High Score
+	- Total Score
+	- Games Played

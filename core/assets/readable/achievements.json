@@ -1,0 +1,31 @@
+{
+  	"Achievements":
+	[
+		{
+			"Name": "Egoism",
+	  		"Trigger": "Clear one row",
+	  		"Completed": "False"
+		},
+		{
+			"Name": "Duality",
+			"Trigger": "Clear two rows at the same time",
+			"Completed": "False"
+		},
+		{
+			"Name": "The Holy Trinity",
+			"Trigger": "Clear three rows at the same time",
+			"Completed": "False"
+		},
+		{
+			"Name": "Enlightenment",
+			"Trigger": "Clear four rows at the same time",
+			"Completed": "False"
+		}
+	],
+	"Settings": {
+		"HIGH_SCORE": 0
+	}
+
+
+
+}

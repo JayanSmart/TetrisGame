@@ -9,9 +9,11 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.Timer;
+import jdk.nashorn.internal.parser.JSONParser;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -27,11 +29,16 @@ public class TetrisGame extends ApplicationAdapter {
 	private Random random;
 	private int game_width, game_length;
 	private boolean game_over;
+	private int score;
+
+	private JSONParser jparser;
 
 	HashMap<String, String> game_properties;
 
 	private GameMap gameMap;
 	private BitmapFont font;
+
+	final Path CONFIG_PATH = Paths.get("readable/tetris.config");
 
 	@Override
 	public void create () {
@@ -46,10 +53,12 @@ public class TetrisGame extends ApplicationAdapter {
 
 		game_properties = new HashMap<>();
 
+
+		score = 0;
+		game_over = false;
+
 		getConfig();
 
-		game_over = false;
-		game_properties.replace("SCORE", "0");
 		font = new BitmapFont();
 
 		this.shapes = new Shape[] {
@@ -98,22 +107,31 @@ public class TetrisGame extends ApplicationAdapter {
 
 					gameMap.printShape(active);
 
-					// Check Game Over
-					if (!checkRow(game_length-3, 1)) {
-						game_over = true;
-						System.out.println("GAME OVER!!");
-
-					}
-
-
 					// Check row completed
 					for (int row = 0; row < active.y; row++) {
 						while (checkRow(row, 0)) {
 							gameMap.removeRow(row);
-							game_properties.replace("SCORE", String.valueOf(Integer.parseInt(String.valueOf(game_properties.get("SCORE")))+10*multiplier));
+							score += 10*multiplier;
 							multiplier += multiplier;
 						}
 
+					}
+
+
+					// Check Game Over
+					if (!checkRow(game_length-4, 1)) {
+						game_over = true;
+						System.out.println("GAME OVER!!");
+
+						// Update the high score
+						if (score >	Integer.parseInt(
+										String.valueOf(game_properties
+												.get("HIGH_SCORE")))) {
+							game_properties.replace("HIGH_SCORE", String.valueOf(score));
+						}
+
+						updateConfig();
+						Gdx.app.exit();
 					}
 
 					active = new Shape(shapes[random.nextInt(shapes.length)].getShape());
@@ -164,7 +182,7 @@ public class TetrisGame extends ApplicationAdapter {
 		batch.begin();
 
 		font.setColor(Color.GOLD);
-		font.draw(batch, "Score: "+ game_properties.get("SCORE"), 20*(game_width+2), 20*(game_length-5));
+		font.draw(batch, "Score: "+ String.valueOf(score), 20*(game_width+2), 20*(game_length-5));
 		font.draw(batch, "High Score: "+ game_properties.get("HIGH_SCORE"), 20*(game_width+2), 20*(game_length-6));
 
 
@@ -280,14 +298,26 @@ public class TetrisGame extends ApplicationAdapter {
 	private void getConfig() {
 		if (game_properties != null) {
 			try {
-				Stream<String> settings = Files.lines(Paths.get(Gdx.files.internal("tetris.config").path()));
+				Stream<String> settings = Files.lines(CONFIG_PATH);
 				settings.forEach((String line) -> {
 					if (line.split("=").length == 2) {
-						System.out.println(line);
 						game_properties.putIfAbsent(line.split("=")[0], line.split("=")[1]);
 					}
 				});
 			} catch(IOException e){
+				e.printStackTrace();
+			}
+		}
+	}
+
+	private void updateConfig() {
+		if (game_properties != null) {
+			try {
+				System.out.println("WRITING FILE");
+				Files.write(CONFIG_PATH, () -> game_properties.entrySet().stream()
+						.<CharSequence>map(e -> e.getKey() + "=" + e.getValue())
+						.iterator());
+			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}
