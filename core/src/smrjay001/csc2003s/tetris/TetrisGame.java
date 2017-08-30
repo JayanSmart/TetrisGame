@@ -9,16 +9,16 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.Timer;
-import jdk.nashorn.internal.parser.JSONParser;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
+import java.io.FileInputStream;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.io.InputStreamReader;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Random;
-import java.util.stream.Stream;
 
 public class TetrisGame extends ApplicationAdapter {
 	private SpriteBatch batch;
@@ -29,16 +29,22 @@ public class TetrisGame extends ApplicationAdapter {
 	private Random random;
 	private int game_width, game_length;
 	private boolean game_over;
-	private int score;
+	private long score;
 
-	private JSONParser jparser;
-
-	HashMap<String, String> game_properties;
+	private JSONParser parser;
+	private JSONObject settings;
 
 	private GameMap gameMap;
 	private BitmapFont font;
 
-	final Path CONFIG_PATH = Paths.get("readable/tetris.config");
+
+	private final String ACHIEVEMENTS	 	= "Achievements";
+	private final String HICH_SCORE 		= "HighScore";
+	private final String CONFIG_PATH 		= "readable/settings.json";
+	private final String DIFFICULTY			= "Difficulty";
+
+
+
 
 	@Override
 	public void create () {
@@ -51,7 +57,8 @@ public class TetrisGame extends ApplicationAdapter {
 		game_width = 10;
 		gameMap = new GameMap(game_length, game_width);
 
-		game_properties = new HashMap<>();
+
+		parser = new JSONParser();
 
 
 		score = 0;
@@ -102,6 +109,7 @@ public class TetrisGame extends ApplicationAdapter {
 		final Timer.Task moveDownTask = new Timer.Task() {
 			@Override
 			public void run() {
+
 				if (checkCollision("down")) {
 					int multiplier = 1;
 
@@ -117,19 +125,13 @@ public class TetrisGame extends ApplicationAdapter {
 
 					}
 
-
 					// Check Game Over
 					if (!checkRow(game_length-4, 1)) {
 						game_over = true;
 						System.out.println("GAME OVER!!");
 
 						// Update the high score
-						if (score >	Integer.parseInt(
-										String.valueOf(game_properties
-												.get("HIGH_SCORE")))) {
-							game_properties.replace("HIGH_SCORE", String.valueOf(score));
-						}
-
+						if (score >	(long)settings.get("HighScore")) settings.put("HighScore", score);
 						updateConfig();
 						Gdx.app.exit();
 					}
@@ -146,7 +148,39 @@ public class TetrisGame extends ApplicationAdapter {
 			}
 		};
 
-		Timer.schedule(moveDownTask, 2f, 0.5f);
+
+		switch (((Long) (settings.get(DIFFICULTY))).intValue()) {
+			case 1:
+				Timer.schedule(moveDownTask, 2f, 1.0f);
+				break;
+			case 2:
+				Timer.schedule(moveDownTask, 2f, 0.9f);
+				break;
+			case 3:
+				Timer.schedule(moveDownTask, 2f, 0.8f);
+				break;
+			case 4:
+				Timer.schedule(moveDownTask, 2f, 0.7f);
+				break;
+			case 5:
+				Timer.schedule(moveDownTask, 2f, 0.6f);
+				break;
+			case 6:
+				Timer.schedule(moveDownTask, 2f, 0.5f);
+				break;
+			case 7:
+				Timer.schedule(moveDownTask, 2f, 0.4f);
+				break;
+			case 8:
+				Timer.schedule(moveDownTask, 2f, 0.3f);
+				break;
+			case 9:
+				Timer.schedule(moveDownTask, 2f, 0.2f);
+				break;
+			case 10:
+				Timer.schedule(moveDownTask, 2f, 0.1f);
+				break;
+		}
 	}
 
 
@@ -183,7 +217,7 @@ public class TetrisGame extends ApplicationAdapter {
 
 		font.setColor(Color.GOLD);
 		font.draw(batch, "Score: "+ String.valueOf(score), 20*(game_width+2), 20*(game_length-5));
-		font.draw(batch, "High Score: "+ game_properties.get("HIGH_SCORE"), 20*(game_width+2), 20*(game_length-6));
+		font.draw(batch, "High Score: "+ settings.get("HighScore"), 20*(game_width+2), 20*(game_length-6));
 
 
 		if (active == null) {
@@ -224,18 +258,23 @@ public class TetrisGame extends ApplicationAdapter {
 	private boolean checkCollision(String action) {
 		Shape checker = new Shape(active.getShape(), active.x, active.y);
 
-		if (action.equals("down")) {
-			checker.down();
+		switch (action) {
+			case "down":
+				checker.down();
 
-		} else if (action.equals("left")) {
-			checker.left();
+				break;
+			case "left":
+				checker.left();
 
-		} else if (action.equals("right")) {
-			checker.right();
+				break;
+			case "right":
+				checker.right();
 
-		} else if (action.equals("rotate")) {
-			checker.rotate();
+				break;
+			case "rotate":
+				checker.rotate();
 
+				break;
 		}
 
 		int[][] field = gameMap.getMap().clone();
@@ -296,27 +335,25 @@ public class TetrisGame extends ApplicationAdapter {
 	 * Fetch and set all the data that the system stores from the previous session into the game_properties map.
 	 */
 	private void getConfig() {
-		if (game_properties != null) {
-			try {
-				Stream<String> settings = Files.lines(CONFIG_PATH);
-				settings.forEach((String line) -> {
-					if (line.split("=").length == 2) {
-						game_properties.putIfAbsent(line.split("=")[0], line.split("=")[1]);
-					}
-				});
-			} catch(IOException e){
-				e.printStackTrace();
-			}
+		if (parser != null) try {
+
+			settings = (JSONObject) parser.parse(new InputStreamReader(new FileInputStream(CONFIG_PATH)));
+
+		} catch (ParseException | IOException e) {
+			e.printStackTrace();
 		}
 	}
 
+	/**
+	 *  Write out the contents of (JSONObject) settings to the config file. This is the last thing done at an end game.
+	 */
 	private void updateConfig() {
-		if (game_properties != null) {
-			try {
-				System.out.println("WRITING FILE");
-				Files.write(CONFIG_PATH, () -> game_properties.entrySet().stream()
-						.<CharSequence>map(e -> e.getKey() + "=" + e.getValue())
-						.iterator());
+		if (settings != null) {
+			try (FileWriter file = new FileWriter(CONFIG_PATH)) {
+
+				file.write(settings.toJSONString());
+				file.flush();
+
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
