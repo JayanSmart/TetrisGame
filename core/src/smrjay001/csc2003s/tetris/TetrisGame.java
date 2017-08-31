@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.Timer;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -33,6 +34,7 @@ public class TetrisGame extends ApplicationAdapter {
 
 	private JSONParser parser;
 	private JSONObject settings;
+	private JSONArray achievements;
 
 	private GameMap gameMap;
 	private BitmapFont font;
@@ -42,6 +44,12 @@ public class TetrisGame extends ApplicationAdapter {
 	private final String HICH_SCORE 		= "HighScore";
 	private final String CONFIG_PATH 		= "readable/settings.json";
 	private final String DIFFICULTY			= "Difficulty";
+
+	//Achievement Properties
+	private final String NAME               = "Name";
+	private final String COMPLETED          = "Completed";
+	private final String MULTIPLIER         = "Multiplier";
+	private final String TRIGGER            = "Trigger";
 
 
 
@@ -122,8 +130,9 @@ public class TetrisGame extends ApplicationAdapter {
 							score += 10*multiplier;
 							multiplier += multiplier;
 						}
-
 					}
+
+					checkAchievements(multiplier);
 
 					// Check Game Over
 					if (!checkRow(game_length-4, 1)) {
@@ -339,6 +348,8 @@ public class TetrisGame extends ApplicationAdapter {
 
 			settings = (JSONObject) parser.parse(new InputStreamReader(new FileInputStream(CONFIG_PATH)));
 
+			achievements = (JSONArray) settings.get(ACHIEVEMENTS);
+
 		} catch (ParseException | IOException e) {
 			e.printStackTrace();
 		}
@@ -356,6 +367,24 @@ public class TetrisGame extends ApplicationAdapter {
 
 			} catch (IOException e) {
 				e.printStackTrace();
+			}
+		}
+	}
+
+	/**
+	 * Check if the last moved triggered any achievements
+	 */
+	private void checkAchievements(int multiplier) {
+		System.out.println("Check Achievements");
+		for (Object iterator:
+		     achievements) {
+			JSONObject achievement = (JSONObject) iterator;
+			if (!Boolean.parseBoolean((String) achievement.get(COMPLETED)) && achievement.containsKey(MULTIPLIER)) {
+				if (((Long) (achievement.get(MULTIPLIER))).intValue() < multiplier) {
+					achievement.replace(COMPLETED, "True");
+					System.out.println(achievement.get(NAME));
+					System.out.println(achievement.get(TRIGGER));
+				}
 			}
 		}
 	}
