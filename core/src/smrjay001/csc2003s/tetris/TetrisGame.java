@@ -41,7 +41,7 @@ public class TetrisGame extends ApplicationAdapter {
 
 
 	private final String ACHIEVEMENTS	 	= "Achievements";
-	private final String HICH_SCORE 		= "HighScore";
+	private final String HIGH_SCORE			= "HighScore";
 	private final String CONFIG_PATH 		= "readable/settings.json";
 	private final String DIFFICULTY			= "Difficulty";
 
@@ -50,9 +50,6 @@ public class TetrisGame extends ApplicationAdapter {
 	private final String COMPLETED          = "Completed";
 	private final String MULTIPLIER         = "Multiplier";
 	private final String TRIGGER            = "Trigger";
-
-
-
 
 	@Override
 	public void create () {
@@ -124,7 +121,7 @@ public class TetrisGame extends ApplicationAdapter {
 					gameMap.printShape(active);
 
 					// Check row completed
-					for (int row = 0; row < active.y; row++) {
+					for (int row = 0; row <= active.y; row++) {
 						while (checkRow(row, 0)) {
 							gameMap.removeRow(row);
 							score += 10*multiplier;
@@ -140,56 +137,29 @@ public class TetrisGame extends ApplicationAdapter {
 						System.out.println("GAME OVER!!");
 
 						// Update the high score
-						if (score >	(long)settings.get("HighScore")) settings.put("HighScore", score);
+						if (score >	(long)settings.get(HIGH_SCORE)) {
+							settings.put(HIGH_SCORE, score);
+						}
+
 						updateConfig();
 						Gdx.app.exit();
 					}
 
+					// Create new random shape
 					active = new Shape(shapes[random.nextInt(shapes.length)].getShape());
 					active.x = random.nextInt(game_width - active.shape.length);
 					active.y = game_length-1;
 					for (int i = 0; i < random.nextInt(3); i++) {
 						active.rotate();
 					}
+
 				} else {
 					active.down();
 				}
 			}
 		};
 
-
-		switch (((Long) (settings.get(DIFFICULTY))).intValue()) {
-			case 1:
-				Timer.schedule(moveDownTask, 2f, 1.0f);
-				break;
-			case 2:
-				Timer.schedule(moveDownTask, 2f, 0.9f);
-				break;
-			case 3:
-				Timer.schedule(moveDownTask, 2f, 0.8f);
-				break;
-			case 4:
-				Timer.schedule(moveDownTask, 2f, 0.7f);
-				break;
-			case 5:
-				Timer.schedule(moveDownTask, 2f, 0.6f);
-				break;
-			case 6:
-				Timer.schedule(moveDownTask, 2f, 0.5f);
-				break;
-			case 7:
-				Timer.schedule(moveDownTask, 2f, 0.4f);
-				break;
-			case 8:
-				Timer.schedule(moveDownTask, 2f, 0.3f);
-				break;
-			case 9:
-				Timer.schedule(moveDownTask, 2f, 0.2f);
-				break;
-			case 10:
-				Timer.schedule(moveDownTask, 2f, 0.1f);
-				break;
-		}
+		Timer.schedule(moveDownTask, 2f, 1.0f- 0.1f*((Long) (settings.get(DIFFICULTY))).intValue());
 	}
 
 
@@ -220,13 +190,23 @@ public class TetrisGame extends ApplicationAdapter {
 				active.rotate();
 			}
 		}
+		if (Gdx.input.isKeyJustPressed(Input.Keys.P)) {
+
+		}
 
 
 		batch.begin();
 
 		font.setColor(Color.GOLD);
 		font.draw(batch, "Score: "+ String.valueOf(score), 20*(game_width+2), 20*(game_length-5));
-		font.draw(batch, "High Score: "+ settings.get("HighScore"), 20*(game_width+2), 20*(game_length-6));
+		font.draw(batch, "High Score: "+ settings.get(HIGH_SCORE), 20*(game_width+2), 20*(game_length-6));
+
+		font.draw(batch, ACHIEVEMENTS+":", 40*game_width, 20*(game_length-5));
+		achievements.forEach( o -> {
+			if (((JSONObject) o).get(COMPLETED) == "True") {
+				font.draw(batch, (String) ((JSONObject) o).get(NAME), 45*game_width, 20*(game_length-7));
+			}
+		});
 
 
 		if (active == null) {
@@ -243,6 +223,7 @@ public class TetrisGame extends ApplicationAdapter {
 			}
 		}
 		batch.end();
+
 	}
 
 	@Override
@@ -355,12 +336,15 @@ public class TetrisGame extends ApplicationAdapter {
 		}
 	}
 
+
 	/**
 	 *  Write out the contents of (JSONObject) settings to the config file. This is the last thing done at an end game.
 	 */
 	private void updateConfig() {
 		if (settings != null) {
 			try (FileWriter file = new FileWriter(CONFIG_PATH)) {
+
+				settings.replace(ACHIEVEMENTS,achievements);
 
 				file.write(settings.toJSONString());
 				file.flush();
@@ -376,11 +360,13 @@ public class TetrisGame extends ApplicationAdapter {
 	 */
 	private void checkAchievements(int multiplier) {
 		System.out.println("Check Achievements");
+		System.out.println("Multiplier = "+multiplier);
 		for (Object iterator:
 		     achievements) {
 			JSONObject achievement = (JSONObject) iterator;
-			if (!Boolean.parseBoolean((String) achievement.get(COMPLETED)) && achievement.containsKey(MULTIPLIER)) {
-				if (((Long) (achievement.get(MULTIPLIER))).intValue() < multiplier) {
+			if ((!Boolean.parseBoolean((String) achievement.get(COMPLETED))) && achievement.containsKey(MULTIPLIER)) {
+				System.out.println("Trigger: "+((Long) (achievement.get(MULTIPLIER))).intValue());
+				if (((Long) (achievement.get(MULTIPLIER))).intValue() == multiplier) {
 					achievement.replace(COMPLETED, "True");
 					System.out.println(achievement.get(NAME));
 					System.out.println(achievement.get(TRIGGER));
