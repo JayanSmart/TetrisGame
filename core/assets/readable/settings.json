@@ -1,1 +1,34 @@
-{"HighScore":600,"Difficulty":7,"Achievements":[{"Trigger":"Clear one row","Multiplier":2,"Completed":"True","Name":"Egoism"},{"Trigger":"Clear two rows at the same time","Multiplier":4,"Completed":"False","Name":"Duality"},{"Trigger":"Clear three rows at the same time","Multiplier":8,"Completed":"False","Name":"The Holy Trinity"},{"Trigger":"Clear four rows at the same time","Multiplier":16,"Completed":"False","Name":"Enlightenment"}]}
+{
+    "HighScore": 600,
+    "Difficulty": 7,
+    "Achievements": [
+        {
+            "Trigger": "Clear one row",
+            "Number": 1,
+            "Multiplier": 2,
+            "Completed": "False",
+            "Name": "Egoism"
+        },
+        {
+            "Trigger": "Clear two rows at the same time",
+            "Number": 2,
+            "Multiplier": 4,
+            "Completed": "False",
+            "Name": "Duality"
+        },
+        {
+            "Trigger": "Clear three rows at the same time",
+            "Number": 3,
+            "Multiplier": 8,
+            "Completed": "False",
+            "Name": "The Holy Trinity"
+        },
+        {
+            "Trigger": "Clear four rows at the same time",
+            "Number": 4,
+            "Multiplier": 16,
+            "Completed": "False",
+            "Name": "Enlightenment"
+        }
+    ]
+}

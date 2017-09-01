@@ -38,6 +38,8 @@ public class TetrisGame extends ApplicationAdapter {
 
 	private GameMap gameMap;
 	private BitmapFont font;
+	private BitmapFont uncompletedFont;
+	private BitmapFont completedFont;
 
 
 	private final String ACHIEVEMENTS	 	= "Achievements";
@@ -46,6 +48,7 @@ public class TetrisGame extends ApplicationAdapter {
 	private final String DIFFICULTY			= "Difficulty";
 
 	//Achievement Properties
+	private final String NUMBER				= "Number";
 	private final String NAME               = "Name";
 	private final String COMPLETED          = "Completed";
 	private final String MULTIPLIER         = "Multiplier";
@@ -72,6 +75,11 @@ public class TetrisGame extends ApplicationAdapter {
 		getConfig();
 
 		font = new BitmapFont();
+		font.setColor(Color.GOLDENROD);
+		uncompletedFont = new BitmapFont();
+		uncompletedFont.setColor(Color.GRAY);
+		completedFont = new BitmapFont();
+		completedFont.setColor(Color.GOLDENROD);
 
 		this.shapes = new Shape[] {
 			new Shape(new int[][] {
@@ -202,9 +210,13 @@ public class TetrisGame extends ApplicationAdapter {
 		font.draw(batch, "High Score: "+ settings.get(HIGH_SCORE), 20*(game_width+2), 20*(game_length-6));
 
 		font.draw(batch, ACHIEVEMENTS+":", 40*game_width, 20*(game_length-5));
-		achievements.forEach( o -> {
-			if (((JSONObject) o).get(COMPLETED) == "True") {
-				font.draw(batch, (String) ((JSONObject) o).get(NAME), 45*game_width, 20*(game_length-7));
+
+
+		achievements.forEach( jsonObject -> {
+			if (((JSONObject) jsonObject).get(COMPLETED) == "True") {
+				completedFont.draw(batch, (String) ((JSONObject) jsonObject).get(NAME), 42*game_width, 20*(game_length-5-((Long)((JSONObject) jsonObject).get(NUMBER)).intValue()));
+			} else {
+				uncompletedFont.draw(batch, (String) ((JSONObject) jsonObject).get(NAME), 42*game_width, 20*(game_length-5-((Long)((JSONObject) jsonObject).get(NUMBER)).intValue()));
 			}
 		});
 
@@ -361,6 +373,7 @@ public class TetrisGame extends ApplicationAdapter {
 	private void checkAchievements(int multiplier) {
 		System.out.println("Check Achievements");
 		System.out.println("Multiplier = "+multiplier);
+		System.out.println(achievements.toJSONString());
 		for (Object iterator:
 		     achievements) {
 			JSONObject achievement = (JSONObject) iterator;
