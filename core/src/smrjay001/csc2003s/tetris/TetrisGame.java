@@ -24,13 +24,14 @@ import java.util.Random;
 public class TetrisGame extends ApplicationAdapter {
 	private SpriteBatch batch;
 	private Texture red_block;
+	private Texture blue_block;
 	private Texture grey_block;
-	private Shape[] shapes;
-	private Shape active;
+	private Player activePlayer;
 	private Random random;
 	private int game_width, game_length;
 	private boolean game_over;
 	private long score;
+	private Player[] players;
 
 	private JSONParser parser;
 	private JSONObject settings;
@@ -43,6 +44,7 @@ public class TetrisGame extends ApplicationAdapter {
 
 	private final String ACHIEVEMENTS	 	= "Achievements";
 	private final String HIGH_SCORE			= "HighScore";
+	private final String HIGH_SCORE_PLAYER	= "HighScorePlayer";
 	private final String DIFFICULTY			= "Difficulty";
 
 	private final String CONFIG_PATH 		= "readable/settings.json";
@@ -63,6 +65,7 @@ public class TetrisGame extends ApplicationAdapter {
 	public void create () {
 		batch = new SpriteBatch();
 		red_block = new Texture("red_block.png");
+		blue_block = new Texture("blue_block.png");
 		grey_block = new Texture("grey_block.png");
 		random = new Random();
 
@@ -70,9 +73,12 @@ public class TetrisGame extends ApplicationAdapter {
 		game_width = 10;
 		gameMap = new GameMap(game_length, game_width);
 
+		players = new Player[] {
+			new Player("Player 1"), new Player("Player 2")
+		};
+		activePlayer = players[0];
 
 		parser = new JSONParser();
-
 
 		score = 0;
 		game_over = false;
@@ -86,44 +92,6 @@ public class TetrisGame extends ApplicationAdapter {
 		completedFont = new BitmapFont();
 		completedFont.setColor(Color.GOLDENROD);
 
-		this.shapes = new Shape[] {
-			new Shape(new int[][] {
-					{0,0,1,0},
-					{0,0,1,0},
-					{0,0,1,0},
-					{0,0,1,0},
-			}),
-			new Shape(new int[][] {
-					{1,1,0},
-					{0,1,0},
-					{0,1,0},
-			}),
-			new Shape(new int[][] {
-					{0,1,1},
-					{0,1,0},
-					{0,1,0},
-			}),
-			new Shape(new int[][] {
-					{0,1,0},
-					{0,1,1},
-					{0,1,0},
-			}),
-			new Shape(new int[][] {
-					{1,1},
-					{1,1}
-			}),
-			new Shape(new int[][] {
-					{1,1,0},
-					{0,1,1},
-					{0,0,0}
-			}),
-			new Shape(new int[][] {
-					{0,1,1},
-					{1,1,0},
-					{0,0,0}
-			}),
-		};
-
 		final Timer.Task moveDownTask = new Timer.Task() {
 			@Override
 			public void run() {
@@ -131,13 +99,13 @@ public class TetrisGame extends ApplicationAdapter {
 				if (checkCollision("down")) {
 					int multiplier = 1;
 
-					gameMap.printShape(active);
+					gameMap.printShape(activePlayer.getShape());
 
 					// Check row completed
-					for (int row = 0; row <= active.y; row++) {
+					for (int row = 0; row <= activePlayer.getShape().y; row++) {
 						while (checkRow(row, 0)) {
 							gameMap.removeRow(row);
-							score += 10*multiplier;
+							activePlayer.addScore(10*multiplier);
 							multiplier += multiplier;
 						}
 					}
@@ -150,24 +118,28 @@ public class TetrisGame extends ApplicationAdapter {
 						System.out.println("GAME OVER!!");
 
 						// Update the high score
-						if (score >	(long)settings.get(HIGH_SCORE)) {
+						if (activePlayer.getScore() > ((Long) settings.get(HIGH_SCORE)).intValue()) {
 							settings.put(HIGH_SCORE, score);
+							settings.put(HIGH_SCORE_PLAYER, activePlayer.getName());
 						}
 
 						updateConfig();
+						System.out.println(activePlayer.getName()+" WINS!");
 						Gdx.app.exit();
 					}
 
-					// Create new random shape
-					active = new Shape(shapes[random.nextInt(shapes.length)].getShape());
-					active.x = random.nextInt(game_width - active.shape.length);
-					active.y = game_length-1;
+					// Fetch the players next shape
+					activePlayer.newShape();
+					activePlayer.setShapePos(random.nextInt(game_width - activePlayer.getShape().shape.length),game_length-1);
+
 					for (int i = 0; i < random.nextInt(3); i++) {
-						active.rotate();
+						activePlayer.getShape().rotate();
 					}
 
+					activePlayer = getNextPlayer();
+
 				} else {
-					active.down();
+					activePlayer.getShape().down();
 				}
 			}
 		};
@@ -185,35 +157,36 @@ public class TetrisGame extends ApplicationAdapter {
 
 		if (Gdx.input.isKeyJustPressed(Input.Keys.DOWN)) {
 			if (!checkCollision("down")) {
-				active.down();
+				activePlayer.getShape().down();
 			}
 		}
 		if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT)) {
 			if (!checkCollision("left")) {
-				active.left();
+				activePlayer.getShape().left();
 			}
 		}
 		if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT)) {
 			if (!checkCollision("right")) {
-				active.right();
+				activePlayer.getShape().right();
 			}
 		}
 		if (Gdx.input.isKeyJustPressed(Input.Keys.UP)) {
 			if (!checkCollision("rotate")) {
-				active.rotate();
+				activePlayer.getShape().rotate();
 			}
 		}
-		if (Gdx.input.isKeyJustPressed(Input.Keys.R)) {
-			System.out.println("RESET CONFIG");
-			resetConfig();
-		}
+//		if (Gdx.input.isKeyJustPressed(Input.Keys.R)) {
+//			System.out.println("RESET CONFIG");
+//			resetConfig();
+//		}
 
 
 		batch.begin();
 
 		font.setColor(Color.GOLD);
-		font.draw(batch, "Score: "+ String.valueOf(score), 20*(game_width+2), 20*(game_length-5));
-		font.draw(batch, "High Score: "+ settings.get(HIGH_SCORE), 20*(game_width+2), 20*(game_length-6));
+		font.draw(batch, players[0].getName()+": "+ String.valueOf(players[0].getScore()), 20*(game_width+2), 20*(game_length-5));
+		font.draw(batch, players[1].getName()+": "+ String.valueOf(players[1].getScore()), 20*(game_width+2), 20*(game_length-6));
+		font.draw(batch, "High Score: "+ settings.get(HIGH_SCORE), 20*(game_width+2), 20*(game_length-7));
 
 		font.draw(batch, ACHIEVEMENTS+":", 40*game_width, 20*(game_length-5));
 
@@ -227,16 +200,28 @@ public class TetrisGame extends ApplicationAdapter {
 			}
 		});
 
-		if (active == null) {
-			active = new Shape(shapes[random.nextInt(shapes.length - 1)].getShape(), 0, 19);
+		if (activePlayer.getShape() == null) {
+			activePlayer.newShape();
 		}
 
-		for (int y = 1; y <= game_length - 4; y++) {
-			for (int x = 1; x <= game_width; x++) {
-				if (gameMap.seeShape(active)[y-1][x-1] == 1) {
-					batch.draw(red_block, 20 * x, 20 * y);
-				} else {
-					batch.draw(grey_block, 20 * x, 20 * y);
+		if (activePlayer.equals(players[0])) {
+			for (int y = 1; y <= game_length - 4; y++) {
+				for (int x = 1; x <= game_width; x++) {
+					if (gameMap.seeShape(activePlayer.getShape())[y - 1][x - 1] == 1) {
+						batch.draw(red_block, 20 * x, 20 * y);
+					} else {
+						batch.draw(grey_block, 20 * x, 20 * y);
+					}
+				}
+			}
+		} else {
+			for (int y = 1; y <= game_length - 4; y++) {
+				for (int x = 1; x <= game_width; x++) {
+					if (gameMap.seeShape(activePlayer.getShape())[y - 1][x - 1] == 1) {
+						batch.draw(blue_block, 20 * x, 20 * y);
+					} else {
+						batch.draw(grey_block, 20 * x, 20 * y);
+					}
 				}
 			}
 		}
@@ -261,10 +246,10 @@ public class TetrisGame extends ApplicationAdapter {
 	/**
 	 * This will check for any collisions in the next game state.
 	 * @return true if collision will occur, else false.
-	 * @param action The movement of the active block that collision will be tested against, either: 'rotate', 'down', 'left' or 'right'.
+	 * @param action The movement of the activeShape block that collision will be tested against, either: 'rotate', 'down', 'left' or 'right'.
 	 */
 	private boolean checkCollision(String action) {
-		Shape checker = new Shape(active.getShape(), active.x, active.y);
+		Shape checker = new Shape(activePlayer.getShape().getShape(), activePlayer.getShape().x, activePlayer.getShape().y);
 
 		switch (action) {
 			case "down":
@@ -314,7 +299,7 @@ public class TetrisGame extends ApplicationAdapter {
 			}
 		}
 
-		// Check if ths active shape collides with an in game shape
+		// Check if ths activeShape shape collides with an in game shape
 		for (int y = 0; y < shape.length ; y++) {
 			for (int x = 0; x < shape.length; x++) {
 				if ((x + checker.x < game_width) && (x + checker.x >= 0) && (checker.y-y>=0)) {
@@ -403,6 +388,18 @@ public class TetrisGame extends ApplicationAdapter {
 					achievement.replace(COMPLETED, "True");
 				}
 			}
+		}
+	}
+
+	/**
+	 * Get the next player in the players array
+	 * @return A Player object from the players array
+	 */
+	public Player getNextPlayer() {
+		if (activePlayer.equals(players[0])) {
+			return players[1];
+		} else {
+			return players[0];
 		}
 	}
 }

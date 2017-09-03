@@ -14,6 +14,12 @@ class Shape {
 		this.y = y;
 	}
 
+	public Shape(Shape newShape) {
+		this.shape = newShape.shape;
+		this.x = newShape.x;
+		this.y = newShape.y;
+	}
+
 	Shape(int[][] shape) {
 		this.shape = shape;
 	}
