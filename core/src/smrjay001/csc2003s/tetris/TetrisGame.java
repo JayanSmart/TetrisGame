@@ -41,11 +41,12 @@ public class TetrisGame extends ApplicationAdapter {
 	private BitmapFont uncompletedFont;
 	private BitmapFont completedFont;
 
-
 	private final String ACHIEVEMENTS	 	= "Achievements";
 	private final String HIGH_SCORE			= "HighScore";
-	private final String CONFIG_PATH 		= "readable/settings.json";
 	private final String DIFFICULTY			= "Difficulty";
+
+	private final String CONFIG_PATH 		= "readable/settings.json";
+	private final String TEMPLATE_PATH      = "readable/settings.template";
 
 	//Achievement Properties
 	private final String NUMBER				= "Number";
@@ -53,6 +54,10 @@ public class TetrisGame extends ApplicationAdapter {
 	private final String COMPLETED          = "Completed";
 	private final String MULTIPLIER         = "Multiplier";
 	private final String TRIGGER            = "Trigger";
+
+	//General triggers
+	private final String TRUE = "True";
+	private final String FALSE = "False";
 
 	@Override
 	public void create () {
@@ -140,7 +145,7 @@ public class TetrisGame extends ApplicationAdapter {
 					checkAchievements(multiplier);
 
 					// Check Game Over
-					if (!checkRow(game_length-4, 1)) {
+					if (!checkRow(game_length-5, 1)) {
 						game_over = true;
 						System.out.println("GAME OVER!!");
 
@@ -198,8 +203,9 @@ public class TetrisGame extends ApplicationAdapter {
 				active.rotate();
 			}
 		}
-		if (Gdx.input.isKeyJustPressed(Input.Keys.P)) {
-
+		if (Gdx.input.isKeyJustPressed(Input.Keys.R)) {
+			System.out.println("RESET CONFIG");
+			resetConfig();
 		}
 
 
@@ -211,15 +217,15 @@ public class TetrisGame extends ApplicationAdapter {
 
 		font.draw(batch, ACHIEVEMENTS+":", 40*game_width, 20*(game_length-5));
 
-
 		achievements.forEach( jsonObject -> {
-			if (((JSONObject) jsonObject).get(COMPLETED) == "True") {
-				completedFont.draw(batch, (String) ((JSONObject) jsonObject).get(NAME), 42*game_width, 20*(game_length-5-((Long)((JSONObject) jsonObject).get(NUMBER)).intValue()));
+			if (((JSONObject) jsonObject).get(COMPLETED).equals(TRUE)) {
+				completedFont.draw(batch, (String) ((JSONObject) jsonObject).get(NAME), 41*game_width, 20*(game_length-4-2*((Long)((JSONObject) jsonObject).get(NUMBER)).intValue()));
+				font.draw(batch, (String) ((JSONObject) jsonObject).get(TRIGGER), 42*game_width, 20*(game_length-5-2*((Long)((JSONObject) jsonObject).get(NUMBER)).intValue()));
 			} else {
-				uncompletedFont.draw(batch, (String) ((JSONObject) jsonObject).get(NAME), 42*game_width, 20*(game_length-5-((Long)((JSONObject) jsonObject).get(NUMBER)).intValue()));
+				uncompletedFont.draw(batch, (String) ((JSONObject) jsonObject).get(NAME), 41*game_width, 20*(game_length-4-2*((Long)((JSONObject) jsonObject).get(NUMBER)).intValue()));
+				uncompletedFont.draw(batch, (String) ((JSONObject) jsonObject).get(TRIGGER), 42*game_width, 20*(game_length-5-2*((Long)((JSONObject) jsonObject).get(NUMBER)).intValue()));
 			}
 		});
-
 
 		if (active == null) {
 			active = new Shape(shapes[random.nextInt(shapes.length - 1)].getShape(), 0, 19);
@@ -348,7 +354,6 @@ public class TetrisGame extends ApplicationAdapter {
 		}
 	}
 
-
 	/**
 	 *  Write out the contents of (JSONObject) settings to the config file. This is the last thing done at an end game.
 	 */
@@ -368,21 +373,34 @@ public class TetrisGame extends ApplicationAdapter {
 	}
 
 	/**
+	 * Reset the settings.json file to match the base template. This will set the High Score to 0, the difficulty to 5,
+	 * and all achievements will be lost.
+	 */
+	private void resetConfig() {
+		try (FileWriter file = new FileWriter(CONFIG_PATH)) {
+
+			InputStreamReader read_file = new InputStreamReader(new FileInputStream(TEMPLATE_PATH));
+			System.out.println(read_file.read());
+
+//
+//			file.write();
+//			file.flush();
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
 	 * Check if the last moved triggered any achievements
 	 */
 	private void checkAchievements(int multiplier) {
-		System.out.println("Check Achievements");
-		System.out.println("Multiplier = "+multiplier);
-		System.out.println(achievements.toJSONString());
 		for (Object iterator:
 		     achievements) {
 			JSONObject achievement = (JSONObject) iterator;
 			if ((!Boolean.parseBoolean((String) achievement.get(COMPLETED))) && achievement.containsKey(MULTIPLIER)) {
-				System.out.println("Trigger: "+((Long) (achievement.get(MULTIPLIER))).intValue());
 				if (((Long) (achievement.get(MULTIPLIER))).intValue() == multiplier) {
 					achievement.replace(COMPLETED, "True");
-					System.out.println(achievement.get(NAME));
-					System.out.println(achievement.get(TRIGGER));
 				}
 			}
 		}
