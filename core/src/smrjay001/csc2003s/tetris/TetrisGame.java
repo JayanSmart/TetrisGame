@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Timer;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -31,7 +32,7 @@ public class TetrisGame extends ApplicationAdapter {
 	private int game_width, game_length;
 	private boolean game_over;
 	private long score;
-	private Player[] players;
+	private Array<Player> players;
 
 	private JSONParser parser;
 	private JSONObject settings;
@@ -73,10 +74,17 @@ public class TetrisGame extends ApplicationAdapter {
 		game_width = 10;
 		gameMap = new GameMap(game_length, game_width);
 
-		players = new Player[] {
-			new Player("Player 1"), new Player("Player 2")
-		};
-		activePlayer = players[0];
+		players = new Array<>(new Player[] {
+				new Player("Player 1", new Texture("blue_block.png")),
+				new Player("Player 2", new Texture("red_block.png"))
+		});
+
+		activePlayer = players.first();
+
+		players.forEach((Player player) -> {
+			player.setShapePos(random.nextInt(game_width - activePlayer.getShape().shape.length),game_length-1);
+		});
+
 
 		parser = new JSONParser();
 
@@ -184,8 +192,8 @@ public class TetrisGame extends ApplicationAdapter {
 		batch.begin();
 
 		font.setColor(Color.GOLD);
-		font.draw(batch, players[0].getName()+": "+ String.valueOf(players[0].getScore()), 20*(game_width+2), 20*(game_length-5));
-		font.draw(batch, players[1].getName()+": "+ String.valueOf(players[1].getScore()), 20*(game_width+2), 20*(game_length-6));
+		font.draw(batch, players.get(0).getName()+": "+ String.valueOf(players.get(0).getScore()), 20*(game_width+2), 20*(game_length-5));
+		font.draw(batch, players.get(1).getName()+": "+ String.valueOf(players.get(1).getScore()), 20*(game_width+2), 20*(game_length-6));
 		font.draw(batch, "High Score: "+ settings.get(HIGH_SCORE), 20*(game_width+2), 20*(game_length-7));
 
 		font.draw(batch, ACHIEVEMENTS+":", 40*game_width, 20*(game_length-5));
@@ -204,24 +212,12 @@ public class TetrisGame extends ApplicationAdapter {
 			activePlayer.newShape();
 		}
 
-		if (activePlayer.equals(players[0])) {
-			for (int y = 1; y <= game_length - 4; y++) {
-				for (int x = 1; x <= game_width; x++) {
-					if (gameMap.seeShape(activePlayer.getShape())[y - 1][x - 1] == 1) {
-						batch.draw(red_block, 20 * x, 20 * y);
-					} else {
-						batch.draw(grey_block, 20 * x, 20 * y);
-					}
-				}
-			}
-		} else {
-			for (int y = 1; y <= game_length - 4; y++) {
-				for (int x = 1; x <= game_width; x++) {
-					if (gameMap.seeShape(activePlayer.getShape())[y - 1][x - 1] == 1) {
-						batch.draw(blue_block, 20 * x, 20 * y);
-					} else {
-						batch.draw(grey_block, 20 * x, 20 * y);
-					}
+		for (int y = 1; y <= game_length - 4; y++) {
+			for (int x = 1; x <= game_width; x++) {
+				if (gameMap.seeShape(activePlayer.getShape())[y - 1][x - 1] == 1) {
+					batch.draw(activePlayer.getBlock(), 20 * x, 20 * y);
+				} else {
+					batch.draw(grey_block, 20 * x, 20 * y);
 				}
 			}
 		}
@@ -396,10 +392,10 @@ public class TetrisGame extends ApplicationAdapter {
 	 * @return A Player object from the players array
 	 */
 	public Player getNextPlayer() {
-		if (activePlayer.equals(players[0])) {
-			return players[1];
+		if (activePlayer.equals(players.first())) {
+			return players.get(1);
 		} else {
-			return players[0];
+			return players.first();
 		}
 	}
 }
