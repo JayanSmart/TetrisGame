@@ -24,8 +24,6 @@ import java.util.Random;
 
 public class TetrisGame extends ApplicationAdapter {
 	private SpriteBatch batch;
-	private Texture red_block;
-	private Texture blue_block;
 	private Texture grey_block;
 	private Player activePlayer;
 	private Random random;
@@ -47,6 +45,8 @@ public class TetrisGame extends ApplicationAdapter {
 	private final String HIGH_SCORE			= "HighScore";
 	private final String HIGH_SCORE_PLAYER	= "HighScorePlayer";
 	private final String DIFFICULTY			= "Difficulty";
+	private final String GAME_WIDTH         = "GameWidth";
+	private final String GAME_LENGTH        = "GameLength";
 
 	private final String CONFIG_PATH 		= "readable/settings.json";
 	private final String TEMPLATE_PATH      = "readable/settings.template";
@@ -65,13 +65,14 @@ public class TetrisGame extends ApplicationAdapter {
 	@Override
 	public void create () {
 		batch = new SpriteBatch();
-		red_block = new Texture("red_block.png");
-		blue_block = new Texture("blue_block.png");
 		grey_block = new Texture("grey_block.png");
 		random = new Random();
 
-		game_length = 24;
-		game_width = 10;
+		parser = new JSONParser();
+		getConfig();
+
+		game_length = ((Long) settings.get(GAME_LENGTH)).intValue();
+		game_width  = ((Long) settings.get(GAME_WIDTH)).intValue();
 		gameMap = new GameMap(game_length, game_width);
 
 		players = new Array<>(new Player[] {
@@ -81,17 +82,16 @@ public class TetrisGame extends ApplicationAdapter {
 
 		activePlayer = players.first();
 
-		players.forEach((Player player) -> {
-			player.setShapePos(random.nextInt(game_width - activePlayer.getShape().shape.length),game_length-1);
-		});
+		players.forEach((Player player) -> player.setShapePos(random.nextInt(
+				game_width - activePlayer.getShape().shape.length),
+				game_length-1)
+		);
 
 
-		parser = new JSONParser();
 
 		score = 0;
 		game_over = false;
 
-		getConfig();
 
 		font = new BitmapFont();
 		font.setColor(Color.GOLDENROD);
@@ -235,7 +235,7 @@ public class TetrisGame extends ApplicationAdapter {
 	@Override
 	public void dispose () {
 		batch.dispose();
-		red_block.dispose();
+		players.forEach(Player::dispose);
 		font.dispose();
 	}
 
@@ -391,7 +391,7 @@ public class TetrisGame extends ApplicationAdapter {
 	 * Get the next player in the players array
 	 * @return A Player object from the players array
 	 */
-	public Player getNextPlayer() {
+	private Player getNextPlayer() {
 		if (activePlayer.equals(players.first())) {
 			return players.get(1);
 		} else {

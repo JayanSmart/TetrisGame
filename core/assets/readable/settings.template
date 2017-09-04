@@ -1,1 +1,37 @@
-{"HighScore":0,"HighScorePlayer": "Player 1","Difficulty":5,"Achievements":[{"Trigger":"Clear one row","Number":1,"Multiplier":2,"Completed":"False","Name":"Egoism"},{"Trigger":"Clear two rows at the same time","Number":2,"Multiplier":4,"Completed":"False","Name":"Duality"},{"Trigger":"Clear three rows at the same time","Number":3,"Multiplier":8,"Completed":"False","Name":"The Holy Trinity"},{"Trigger":"Clear four rows at the same time","Number":4,"Multiplier":16,"Completed":"False","Name":"Enlightenment"}]}
+{
+    "HighScore": 0,
+    "HighScorePlayer": "Player 1",
+    "Difficulty": 5,
+	"GameWidth": 10,
+	"GameLength": 24,
+    "Achievements": [
+        {
+            "Trigger": "Clear one row",
+            "Number": 1,
+            "Multiplier": 2,
+            "Completed": "False",
+            "Name": "Egoism"
+        },
+        {
+            "Trigger": "Clear two rows at the same time",
+            "Number": 2,
+            "Multiplier": 4,
+            "Completed": "False",
+            "Name": "Duality"
+        },
+        {
+            "Trigger": "Clear three rows at the same time",
+            "Number": 3,
+            "Multiplier": 8,
+            "Completed": "False",
+            "Name": "The Holy Trinity"
+        },
+        {
+            "Trigger": "Clear four rows at the same time",
+            "Number": 4,
+            "Multiplier": 16,
+            "Completed": "False",
+            "Name": "Enlightenment"
+        }
+    ]
+}

@@ -2,7 +2,7 @@ package smrjay001.csc2003s.tetris;
 
 import com.badlogic.gdx.graphics.Texture;
 
-public class Player {
+class Player {
 	private String name;
 	private int score;
 	private Shape shape;
@@ -10,7 +10,7 @@ public class Player {
 	private ShapeList shapes;
 	private Texture block;
 
-	public Player(String name, Texture block) {
+	Player(String name, Texture block) {
 		this.name = name;
 		this.score = 0;
 		this.shapes = new ShapeList();
@@ -20,35 +20,39 @@ public class Player {
 
 	}
 
-	public String getName() {
+	String getName() {
 		return name;
 	}
 
 
 
-	public int getScore() {
+	int getScore() {
 		return score;
 	}
 
-	public Shape getShape() {
+	Shape getShape() {
 		return shape;
 	}
 
-	public void newShape() {
+	void newShape() {
 		shape =  new Shape(nextShape);
 		nextShape = shapes.getShape();
 	}
 
-	public void setShapePos(int x, int y) {
+	void setShapePos(int x, int y) {
 		this.shape.x = x;
 		this.shape.y = y;
 	}
 
-	public void addScore(int added) {
+	void addScore(int added) {
 		this.score += added;
 	}
 
-	public Texture getBlock() {
+	Texture getBlock() {
 		return block;
+	}
+
+	void dispose() {
+		this.block.dispose();
 	}
 }

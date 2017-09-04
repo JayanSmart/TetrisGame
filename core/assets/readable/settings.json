@@ -2,6 +2,8 @@
     "HighScore": 0,
     "HighScorePlayer": "Player 1",
     "Difficulty": 7,
+	"GameWidth": 10,
+	"GameLength": 24,
     "Achievements": [
         {
             "Trigger": "Clear one row",
