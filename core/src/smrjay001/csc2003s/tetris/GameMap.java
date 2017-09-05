@@ -96,7 +96,7 @@ class GameMap {
 				if (
 						(y >= shape.y) && (y <shape.y+shape.shape.length) &&
 								(x >= shape.x) && (x < shape.x+shape.shape.length) &&
-								(shape.shape[y-shape.y][x-shape.x] == 1)
+								(shape.shape[y-shape.y][x-shape.x] != 0)
 						) {
 					output.append(shape.shape[y - shape.y][x - shape.x]).append(", ");
 				} else {

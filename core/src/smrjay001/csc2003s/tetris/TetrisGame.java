@@ -26,10 +26,12 @@ public class TetrisGame extends ApplicationAdapter {
 	private SpriteBatch batch;
 	private Texture grey_block;
 	private Player activePlayer;
+
 	private Random random;
+	private Timer.Task moveDownTask;
+
 	private int game_width, game_length;
 	private boolean game_over;
-	private long score;
 	private Array<Player> players;
 
 	private JSONParser parser;
@@ -57,6 +59,7 @@ public class TetrisGame extends ApplicationAdapter {
 	private final String COMPLETED          = "Completed";
 	private final String MULTIPLIER         = "Multiplier";
 	private final String TRIGGER            = "Trigger";
+	private final String POINTS				= "Points";
 
 	//General triggers
 	private final String TRUE = "True";
@@ -76,8 +79,8 @@ public class TetrisGame extends ApplicationAdapter {
 		gameMap = new GameMap(game_length, game_width);
 
 		players = new Array<>(new Player[] {
-				new Player("Player 1", new Texture("blue_block.png")),
-				new Player("Player 2", new Texture("red_block.png"))
+				new Player("Player 1", new Texture("blue_block.png"), 1),
+				new Player("Player 2", new Texture("red_block.png"), 2)
 		});
 
 		activePlayer = players.first();
@@ -87,11 +90,7 @@ public class TetrisGame extends ApplicationAdapter {
 				game_length-1)
 		);
 
-
-
-		score = 0;
 		game_over = false;
-
 
 		font = new BitmapFont();
 		font.setColor(Color.GOLDENROD);
@@ -100,7 +99,7 @@ public class TetrisGame extends ApplicationAdapter {
 		completedFont = new BitmapFont();
 		completedFont.setColor(Color.GOLDENROD);
 
-		final Timer.Task moveDownTask = new Timer.Task() {
+		moveDownTask = new Timer.Task() {
 			@Override
 			public void run() {
 
@@ -121,19 +120,11 @@ public class TetrisGame extends ApplicationAdapter {
 					checkAchievements(multiplier);
 
 					// Check Game Over
-					if (!checkRow(game_length-5, 1)) {
+					if (!checkRow(game_length-5, 1) || !checkRow(game_length-5, 2)) {
 						game_over = true;
 						System.out.println("GAME OVER!!");
 
-						// Update the high score
-						if (activePlayer.getScore() > ((Long) settings.get(HIGH_SCORE)).intValue()) {
-							settings.put(HIGH_SCORE, score);
-							settings.put(HIGH_SCORE_PLAYER, activePlayer.getName());
-						}
-
 						updateConfig();
-						System.out.println(activePlayer.getName()+" WINS!");
-						Gdx.app.exit();
 					}
 
 					// Fetch the players next shape
@@ -148,6 +139,8 @@ public class TetrisGame extends ApplicationAdapter {
 
 				} else {
 					activePlayer.getShape().down();
+					System.out.println(gameMap.toString(activePlayer.getShape()));
+					System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++\n\n+++++++++++++++++++++++++++++++++++++++++++++++++++++");
 				}
 			}
 		};
@@ -163,66 +156,77 @@ public class TetrisGame extends ApplicationAdapter {
 		Gdx.gl.glClearColor(1, 1, 1, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-		if (Gdx.input.isKeyJustPressed(Input.Keys.DOWN)) {
-			if (!checkCollision("down")) {
-				activePlayer.getShape().down();
+		if (game_over) {
+			if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
+				dispose();
+				create();
 			}
-		}
-		if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT)) {
-			if (!checkCollision("left")) {
-				activePlayer.getShape().left();
+		} else {
+
+			if (Gdx.input.isKeyJustPressed(Input.Keys.DOWN)) {
+				if (!checkCollision("down")) {
+					activePlayer.getShape().down();
+				}
 			}
-		}
-		if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT)) {
-			if (!checkCollision("right")) {
-				activePlayer.getShape().right();
+			if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT)) {
+				if (!checkCollision("left")) {
+					activePlayer.getShape().left();
+				}
 			}
-		}
-		if (Gdx.input.isKeyJustPressed(Input.Keys.UP)) {
-			if (!checkCollision("rotate")) {
-				activePlayer.getShape().rotate();
+			if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT)) {
+				if (!checkCollision("right")) {
+					activePlayer.getShape().right();
+				}
 			}
-		}
+			if (Gdx.input.isKeyJustPressed(Input.Keys.UP)) {
+				if (!checkCollision("rotate")) {
+					activePlayer.getShape().rotate();
+				}
+			}
 //		if (Gdx.input.isKeyJustPressed(Input.Keys.R)) {
 //			System.out.println("RESET CONFIG");
 //			resetConfig();
 //		}
 
 
-		batch.begin();
+			batch.begin();
 
-		font.setColor(Color.GOLD);
-		font.draw(batch, players.get(0).getName()+": "+ String.valueOf(players.get(0).getScore()), 20*(game_width+2), 20*(game_length-5));
-		font.draw(batch, players.get(1).getName()+": "+ String.valueOf(players.get(1).getScore()), 20*(game_width+2), 20*(game_length-6));
-		font.draw(batch, "High Score: "+ settings.get(HIGH_SCORE), 20*(game_width+2), 20*(game_length-7));
+			font.setColor(Color.GOLD);
+			font.draw(batch, players.get(0).getName() + ": " + String.valueOf(players.get(0).getScore()), 20 * (game_width + 2), 20 * (game_length - 5));
+			font.draw(batch, players.get(1).getName() + ": " + String.valueOf(players.get(1).getScore()), 20 * (game_width + 2), 20 * (game_length - 6));
+			font.draw(batch, "High Score: " + settings.get(HIGH_SCORE), 20 * (game_width + 2), 20 * (game_length - 7));
 
-		font.draw(batch, ACHIEVEMENTS+":", 40*game_width, 20*(game_length-5));
+			font.draw(batch, ACHIEVEMENTS + ":", 40 * game_width, 20 * (game_length - 5));
 
-		achievements.forEach( jsonObject -> {
-			if (((JSONObject) jsonObject).get(COMPLETED).equals(TRUE)) {
-				completedFont.draw(batch, (String) ((JSONObject) jsonObject).get(NAME), 41*game_width, 20*(game_length-4-2*((Long)((JSONObject) jsonObject).get(NUMBER)).intValue()));
-				font.draw(batch, (String) ((JSONObject) jsonObject).get(TRIGGER), 42*game_width, 20*(game_length-5-2*((Long)((JSONObject) jsonObject).get(NUMBER)).intValue()));
-			} else {
-				uncompletedFont.draw(batch, (String) ((JSONObject) jsonObject).get(NAME), 41*game_width, 20*(game_length-4-2*((Long)((JSONObject) jsonObject).get(NUMBER)).intValue()));
-				uncompletedFont.draw(batch, (String) ((JSONObject) jsonObject).get(TRIGGER), 42*game_width, 20*(game_length-5-2*((Long)((JSONObject) jsonObject).get(NUMBER)).intValue()));
-			}
-		});
-
-		if (activePlayer.getShape() == null) {
-			activePlayer.newShape();
-		}
-
-		for (int y = 1; y <= game_length - 4; y++) {
-			for (int x = 1; x <= game_width; x++) {
-				if (gameMap.seeShape(activePlayer.getShape())[y - 1][x - 1] == 1) {
-					batch.draw(activePlayer.getBlock(), 20 * x, 20 * y);
+			achievements.forEach(jsonObject -> {
+				if (((JSONObject) jsonObject).get(COMPLETED).equals(TRUE)) {
+					completedFont.draw(batch, (String) ((JSONObject) jsonObject).get(NAME), 41 * game_width, 20 * (game_length - 4 - 2 * ((Long) ((JSONObject) jsonObject).get(NUMBER)).intValue()));
+					font.draw(batch, (String) ((JSONObject) jsonObject).get(TRIGGER), 42 * game_width, 20 * (game_length - 5 - 2 * ((Long) ((JSONObject) jsonObject).get(NUMBER)).intValue()));
 				} else {
-					batch.draw(grey_block, 20 * x, 20 * y);
+					uncompletedFont.draw(batch, (String) ((JSONObject) jsonObject).get(NAME), 41 * game_width, 20 * (game_length - 4 - 2 * ((Long) ((JSONObject) jsonObject).get(NUMBER)).intValue()));
+					uncompletedFont.draw(batch, (String) ((JSONObject) jsonObject).get(TRIGGER), 42 * game_width, 20 * (game_length - 5 - 2 * ((Long) ((JSONObject) jsonObject).get(NUMBER)).intValue()));
+				}
+			});
+
+			if (activePlayer.getShape() == null) {
+				activePlayer.newShape();
+			}
+			batch.draw(players.get(0).getBlock(),20 * (game_width + 2) - 22, 20 * (game_length - 6));
+			batch.draw(players.get(1).getBlock(), 20 * (game_width + 2) - 22, 20 * (game_length - 7));
+
+			for (int y = 1; y <= game_length - 4; y++) {
+				for (int x = 1; x <= game_width; x++) {
+					if (gameMap.seeShape(activePlayer.getShape())[y - 1][x - 1] == activePlayer.getPlayerID()) {
+						batch.draw(activePlayer.getBlock(), 20 * x, 20 * y);
+					} else if (gameMap.getMap()[y - 1][x - 1] == getNextPlayer().getPlayerID()) {
+						batch.draw(getNextPlayer().getBlock(), 20 * x, 20 * y);
+					}else {
+						batch.draw(grey_block, 20 * x, 20 * y);
+					}
 				}
 			}
+			batch.end();
 		}
-		batch.end();
-
 	}
 
 	@Override
@@ -237,6 +241,8 @@ public class TetrisGame extends ApplicationAdapter {
 		batch.dispose();
 		players.forEach(Player::dispose);
 		font.dispose();
+		uncompletedFont.dispose();
+		completedFont.dispose();
 	}
 
 	/**
@@ -274,7 +280,7 @@ public class TetrisGame extends ApplicationAdapter {
 			for (int x = 0; x < shape.length; x++) {
 				if (y<0) {
 					if (x + checker.x < game_width && x + checker.x >= 0) {
-						if (shape[checker.y - y][x] == 1) {
+						if (shape[checker.y - y][x] != 0) {
 							return true;
 						}
 					}
@@ -285,10 +291,10 @@ public class TetrisGame extends ApplicationAdapter {
 		// Check if the block if off the left or right side of the screen
 		for (int[] row : shape) {
 			for (int x = 0; x < shape.length; x++) {
-				if (x + checker.x >= game_width && row[x] == 1) {
+				if (x + checker.x >= game_width && row[x] != 0) {
 					// The block would be off the right side of the game screen
 					return true;
-				} else if (checker.x + x < 0 && row[x] == 1) {
+				} else if (checker.x + x < 0 && row[x] != 0) {
 					// The block would be off the left side of the game screen
 					return true;
 				}
@@ -299,7 +305,7 @@ public class TetrisGame extends ApplicationAdapter {
 		for (int y = 0; y < shape.length ; y++) {
 			for (int x = 0; x < shape.length; x++) {
 				if ((x + checker.x < game_width) && (x + checker.x >= 0) && (checker.y-y>=0)) {
-					if (field[checker.y - y][checker.x + x] == 1 && shape[y][x] == 1) {
+					if (field[checker.y - y][checker.x + x] != 0 && shape[y][x] != 0) {
 						// The block collides with a fixed block
 						return true;
 					}
@@ -339,17 +345,28 @@ public class TetrisGame extends ApplicationAdapter {
 	 *  Write out the contents of (JSONObject) settings to the config file. This is the last thing done at an end game.
 	 */
 	private void updateConfig() {
-		if (settings != null) {
-			try (FileWriter file = new FileWriter(CONFIG_PATH)) {
+		if (settings != null) try (FileWriter file = new FileWriter(CONFIG_PATH)) {
 
-				settings.replace(ACHIEVEMENTS,achievements);
+// 				No longer write the achievements as they have become a part of the multiplayer strategy
+//				settings.replace(ACHIEVEMENTS,achievements);
+//
 
-				file.write(settings.toJSONString());
-				file.flush();
-
-			} catch (IOException e) {
-				e.printStackTrace();
+			int high = ((Long) settings.get(HIGH_SCORE)).intValue();
+			if (activePlayer.getScore() > high && activePlayer.getScore() > getNextPlayer().getScore()) {
+				settings.replace(HIGH_SCORE, activePlayer.getScore());
+				settings.replace(HIGH_SCORE_PLAYER, activePlayer.getName());
+			} else if (getNextPlayer().getScore() > high){
+				settings.replace(HIGH_SCORE, getNextPlayer().getScore());
+				settings.replace(HIGH_SCORE_PLAYER, getNextPlayer().getName());
 			}
+
+			System.out.println(settings.toString());
+			file.write(settings.toJSONString());
+			file.flush();
+
+		} catch (Exception e) {
+			System.out.println(settings.toString());
+			e.printStackTrace();
 		}
 	}
 
@@ -382,6 +399,7 @@ public class TetrisGame extends ApplicationAdapter {
 			if ((!Boolean.parseBoolean((String) achievement.get(COMPLETED))) && achievement.containsKey(MULTIPLIER)) {
 				if (((Long) (achievement.get(MULTIPLIER))).intValue() == multiplier) {
 					achievement.replace(COMPLETED, "True");
+					activePlayer.addScore(((Long) achievement.get(POINTS)).intValue());
 				}
 			}
 		}

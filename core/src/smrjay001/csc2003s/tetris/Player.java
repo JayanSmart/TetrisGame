@@ -9,29 +9,39 @@ class Player {
 	private Shape nextShape;
 	private ShapeList shapes;
 	private Texture block;
+	private int playerID;
 
-	Player(String name, Texture block) {
+	Player(String name, Texture block, int playerID) {
 		this.name = name;
 		this.score = 0;
 		this.shapes = new ShapeList();
 		this.shape = shapes.getShape();
 		this.nextShape = shapes.getShape();
 		this.block = block;
-
+		this.playerID = playerID;
+		if (playerID != 1) {
+			shapes.convertShapes(playerID);
+		}
 	}
 
 	String getName() {
 		return name;
 	}
 
-
-
+	/**
+	 * Get the player score
+	 * @return player score as an int
+	 */
 	int getScore() {
 		return score;
 	}
 
 	Shape getShape() {
 		return shape;
+	}
+
+	public int getPlayerID() {
+		return playerID;
 	}
 
 	void newShape() {

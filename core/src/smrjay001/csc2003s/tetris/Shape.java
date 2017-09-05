@@ -8,13 +8,13 @@ class Shape {
 	int x = 0;
 	int y = 0;
 
-	public Shape(int[][] shape, int x, int y) {
+	Shape(int[][] shape, int x, int y) {
 		this.shape = shape;
 		this.x = x;
 		this.y = y;
 	}
 
-	public Shape(Shape newShape) {
+	Shape(Shape newShape) {
 		this.shape = newShape.shape;
 		this.x = newShape.x;
 		this.y = newShape.y;
@@ -24,7 +24,7 @@ class Shape {
 		this.shape = shape;
 	}
 
-	public int[][] getShape() {
+	int[][] getShape() {
 		return shape;
 	}
 

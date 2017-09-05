@@ -2,7 +2,7 @@ package smrjay001.csc2003s.tetris;
 
 import java.util.Random;
 
-public class ShapeList {
+class ShapeList {
 
 	private Random random;
 
@@ -13,38 +13,38 @@ public class ShapeList {
 				{0,0,1,0},
 				{0,0,1,0},
 		}),
-				new Shape(new int[][] {
-						{1,1,0},
-						{0,1,0},
-						{0,1,0},
-				}),
-				new Shape(new int[][] {
-						{0,1,1},
-						{0,1,0},
-						{0,1,0},
-				}),
-				new Shape(new int[][] {
-						{0,1,0},
-						{0,1,1},
-						{0,1,0},
-				}),
-				new Shape(new int[][] {
-						{1,1},
-						{1,1}
-				}),
-				new Shape(new int[][] {
-						{1,1,0},
-						{0,1,1},
-						{0,0,0}
-				}),
-				new Shape(new int[][] {
-						{0,1,1},
-						{1,1,0},
-						{0,0,0}
-				}),
+		new Shape(new int[][] {
+				{1,1,0},
+				{0,1,0},
+				{0,1,0},
+		}),
+		new Shape(new int[][] {
+				{0,1,1},
+				{0,1,0},
+				{0,1,0},
+		}),
+		new Shape(new int[][] {
+				{0,1,0},
+				{0,1,1},
+				{0,1,0},
+		}),
+		new Shape(new int[][] {
+				{1,1},
+				{1,1}
+		}),
+		new Shape(new int[][] {
+				{1,1,0},
+				{0,1,1},
+				{0,0,0}
+		}),
+		new Shape(new int[][] {
+				{0,1,1},
+				{1,1,0},
+				{0,0,0}
+		}),
 	};
 
-	public ShapeList() {
+	ShapeList() {
 		this.random = new Random();
 	}
 
@@ -52,7 +52,24 @@ public class ShapeList {
 	 * Fetch a random Shape object from the ShapeList.
 	 * @return a Shape Object picked from the shapeList.
 	 */
-	public Shape getShape() {
+	Shape getShape() {
 		return new Shape(shapes[random.nextInt(shapes.length)].getShape());
+	}
+
+	/**
+	 * This method will convert all the shapes to use the playerID instead of 1 for an "active" space.
+	 */
+	void convertShapes(int playerID) {
+		for (Shape shape :
+				shapes) {
+			for (int[] row :
+					shape.shape) {
+				for (int i = 0; i < row.length; i++) {
+					if (row[i] != 0) {
+						row[i] = playerID;
+					}
+				}
+			}
+		}
 	}
 }
