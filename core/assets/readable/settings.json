@@ -1,13 +1,13 @@
 {
-    "HighScore": 0,
-    "Difficulty": 7,
+    "HighScore": 100,
+    "Difficulty": 8,
     "Achievements": [
         {
             "Points": 30,
             "Trigger": "Clear one row",
             "Number": 1,
             "Multiplier": 2,
-            "Completed": "True",
+            "Completed": "False",
             "Name": "Egoism"
         },
         {

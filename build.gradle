@@ -48,6 +48,7 @@ project(":core") {
 
 
     dependencies {
+        compile file("lib/json-simple-1.1.1.jar")
         compile "com.badlogicgames.gdx:gdx:$gdxVersion"
         compile "com.badlogicgames.gdx:gdx-box2d:$gdxVersion"
     }

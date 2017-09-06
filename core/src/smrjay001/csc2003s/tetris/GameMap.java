@@ -4,18 +4,18 @@ package smrjay001.csc2003s.tetris;
  * This is the object that controls the game map on which the player plays
  * This will not store the active map, only the static one.
  */
-class GameMap {
+public class GameMap {
 	private final int[][] map;
 	private final int length;
 	private final int width;
 
-	GameMap(int length, int width) {
+	public GameMap(int length, int width) {
 		this.length = length;
 		this.width = width;
 		this.map = new int[length][width];
 	}
 
-	int[][] getMap() {
+	public int[][] getMap() {
 		return map;
 	}
 
@@ -23,7 +23,7 @@ class GameMap {
 	 * This method will print the active shape to the game map, making it a static background object.
 	 * @param active The shape object that will be printed to the game map
 	 */
-	void printShape(Shape active) {
+	public void printShape(Shape active) {
 		int[][] shape = active.getShape().clone();
 
 		for (int y = 0; y<shape.length; y++) {
@@ -42,7 +42,7 @@ class GameMap {
 	 * @param active the shape object currently under user control
 	 * @return int[][] of the game board with the active piece on the board.
 	 */
-	int[][] seeShape(Shape active) {
+	public int[][] seeShape(Shape active) {
 		int[][] board = new int[length][width];
 		for (int i = 0; i < length; i++) {
 			System.arraycopy(map[i], 0, board[i], 0, width);
@@ -89,7 +89,7 @@ class GameMap {
 		return output.toString().trim();
 	}
 
-	String toString(Shape shape) {
+	public String toString(Shape shape) {
 		StringBuilder output = new StringBuilder();
 		for (int y = 0; y < map.length; y++) {
 			for (int x=0; x < map[y].length; x++) {

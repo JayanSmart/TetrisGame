@@ -3,12 +3,12 @@ package smrjay001.csc2003s.tetris;
 /**
  * This object manages a Shape with which the player plays.
  */
-class Shape {
-	int[][] shape;
+public class Shape {
+	public int[][] shape;
 	int x = 0;
 	int y = 0;
 
-	Shape(int[][] shape, int x, int y) {
+	public Shape(int[][] shape, int x, int y) {
 		this.shape = shape;
 		this.x = x;
 		this.y = y;
@@ -24,23 +24,23 @@ class Shape {
 		this.shape = shape;
 	}
 
-	int[][] getShape() {
+	public int[][] getShape() {
 		return shape;
 	}
 
-	void down() {
+	public void down() {
 		y -= 1;
 	}
 
-	void left() {
+	public void left() {
 		x -= 1;
 	}
 
-	void right() {
+	public void right() {
 		x += 1;
 	}
 
-	void rotate() {
+	public void rotate() {
 		int[][] rotated = new int[shape.length][shape.length];
 
 		for (int i = 0; i < shape.length; i++) {
@@ -62,5 +62,13 @@ class Shape {
 			out.append("\n");
 		}
 		return out.toString();
+	}
+
+	public int getX() {
+		return x;
+	}
+
+	public int getY() {
+		return y;
 	}
 }
