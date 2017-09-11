@@ -8,7 +8,6 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Timer;
 import org.json.simple.JSONArray;
@@ -142,7 +141,7 @@ public class ApplicationScreen implements Screen {
 			}
 		};
 
-		Timer.schedule(moveDownTask, 2f, 1.0f- 0.1f*((Long) (settings.get(parent.DIFFICULTY))).intValue());
+		Timer.schedule(moveDownTask, 2f, 1.0f- 0.1f*((Long) (settings.get(DIFFICULTY))).intValue());
 	}
 
 	@Override
@@ -155,35 +154,65 @@ public class ApplicationScreen implements Screen {
 		if (game_over) {
 			batch.begin();
 			font.draw(batch, "GAME OVER", 10*game_width, 11*game_length);
-			font.draw(batch, "Press ESC to exit", 10*game_width, 10*game_length);
+			if (activePlayer.getScore() > getNextPlayer().getScore()) {
+				font.draw(batch, activePlayer.getName()+" WINS!!!", 10*game_width, 10*game_length);
+			} else if (activePlayer.getScore() == getNextPlayer().getScore()) {
+				font.draw(batch, "Its a DRAW!!!", 10*game_width, 10*game_length);
+			} else {
+				font.draw(batch, getNextPlayer().getName()+" WINS!!!", 10*game_width, 10*game_length);
+			}
+			font.draw(batch, "Press ESC to exit", 10*game_width, 9*game_length);
 			if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
 				parent.changeScreen(MENU);
 			}
 			batch.end();
 		} else {
 
-			if (Gdx.input.isKeyJustPressed(Input.Keys.DOWN)) {
-				if (!checkCollision("down")) {
-					activePlayer.getShape().down();
+			if (activePlayer.getPlayerID() == 1) {
+				if (Gdx.input.isKeyJustPressed(Input.Keys.DOWN)) {
+					if (!checkCollision("down")) {
+						activePlayer.getShape().down();
+					}
 				}
-			}
-			if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT)) {
-				if (!checkCollision("left")) {
-					activePlayer.getShape().left();
+				if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT)) {
+					if (!checkCollision("left")) {
+						activePlayer.getShape().left();
+					}
 				}
-			}
-			if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT)) {
-				if (!checkCollision("right")) {
-					activePlayer.getShape().right();
+				if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT)) {
+					if (!checkCollision("right")) {
+						activePlayer.getShape().right();
+					}
 				}
-			}
-			if (Gdx.input.isKeyJustPressed(Input.Keys.UP)) {
-				if (!checkCollision("rotate")) {
-					activePlayer.getShape().rotate();
+				if (Gdx.input.isKeyJustPressed(Input.Keys.UP)) {
+					if (!checkCollision("rotate")) {
+						activePlayer.getShape().rotate();
+					}
+				}
+			} else {
+				if (Gdx.input.isKeyJustPressed(Input.Keys.S)) {
+					if (!checkCollision("down")) {
+						activePlayer.getShape().down();
+					}
+				}
+				if (Gdx.input.isKeyJustPressed(Input.Keys.A)) {
+					if (!checkCollision("left")) {
+						activePlayer.getShape().left();
+					}
+				}
+				if (Gdx.input.isKeyJustPressed(Input.Keys.D)) {
+					if (!checkCollision("right")) {
+						activePlayer.getShape().right();
+					}
+				}
+				if (Gdx.input.isKeyJustPressed(Input.Keys.W)) {
+					if (!checkCollision("rotate")) {
+						activePlayer.getShape().rotate();
+					}
 				}
 			}
 			if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
-				dispose();
+				moveDownTask.cancel();
 				parent.changeScreen(MENU);
 			}
 
